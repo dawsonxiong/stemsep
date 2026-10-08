@@ -1,0 +1,370 @@
+[
+  {
+    "track": "AM Contra - Heart Peripheral",
+    "stem": "drums",
+    "seconds": 210.1,
+    "cbr192 q5": {
+      "kbytes": 5043,
+      "kbps": 192,
+      "encode_s": 2.42,
+      "snr_db": 17.43
+    },
+    "vbr V2": {
+      "kbytes": 5419,
+      "kbps": 206,
+      "encode_s": 2.44,
+      "snr_db": 18.52
+    },
+    "vbr V3": {
+      "kbytes": 4843,
+      "kbps": 184,
+      "encode_s": 2.33,
+      "snr_db": 17.52
+    }
+  },
+  {
+    "track": "AM Contra - Heart Peripheral",
+    "stem": "bass",
+    "seconds": 210.1,
+    "cbr192 q5": {
+      "kbytes": 5043,
+      "kbps": 192,
+      "encode_s": 2.55,
+      "snr_db": -2.44
+    },
+    "vbr V2": {
+      "kbytes": 4480,
+      "kbps": 171,
+      "encode_s": 2.26,
+      "snr_db": -2.81
+    },
+    "vbr V3": {
+      "kbytes": 3868,
+      "kbps": 147,
+      "encode_s": 2.16,
+      "snr_db": 35.98
+    }
+  },
+  {
+    "track": "AM Contra - Heart Peripheral",
+    "stem": "other",
+    "seconds": 210.1,
+    "cbr192 q5": {
+      "kbytes": 5043,
+      "kbps": 192,
+      "encode_s": 2.55,
+      "snr_db": 23.55
+    },
+    "vbr V2": {
+      "kbytes": 5179,
+      "kbps": 197,
+      "encode_s": 2.45,
+      "snr_db": 22.86
+    },
+    "vbr V3": {
+      "kbytes": 4656,
+      "kbps": 177,
+      "encode_s": 2.41,
+      "snr_db": 21.92
+    }
+  },
+  {
+    "track": "AM Contra - Heart Peripheral",
+    "stem": "vocals",
+    "seconds": 210.1,
+    "cbr192 q5": {
+      "kbytes": 5043,
+      "kbps": 192,
+      "encode_s": 2.46,
+      "snr_db": 26.42
+    },
+    "vbr V2": {
+      "kbytes": 4697,
+      "kbps": 179,
+      "encode_s": 2.29,
+      "snr_db": 30.44
+    },
+    "vbr V3": {
+      "kbytes": 4122,
+      "kbps": 157,
+      "encode_s": 2.27,
+      "snr_db": 28.89
+    }
+  },
+  {
+    "track": "Al James - Schoolboy Facination",
+    "stem": "drums",
+    "seconds": 200.5,
+    "cbr192 q5": {
+      "kbytes": 4813,
+      "kbps": 192,
+      "encode_s": 2.3,
+      "snr_db": 16.52
+    },
+    "vbr V2": {
+      "kbytes": 5196,
+      "kbps": 207,
+      "encode_s": 2.31,
+      "snr_db": 18.01
+    },
+    "vbr V3": {
+      "kbytes": 4733,
+      "kbps": 189,
+      "encode_s": 2.23,
+      "snr_db": 16.77
+    }
+  },
+  {
+    "track": "Al James - Schoolboy Facination",
+    "stem": "bass",
+    "seconds": 200.5,
+    "cbr192 q5": {
+      "kbytes": 4813,
+      "kbps": 192,
+      "encode_s": 2.52,
+      "snr_db": 27.4
+    },
+    "vbr V2": {
+      "kbytes": 4052,
+      "kbps": 162,
+      "encode_s": 2.08,
+      "snr_db": 29.72
+    },
+    "vbr V3": {
+      "kbytes": 3429,
+      "kbps": 137,
+      "encode_s": 1.99,
+      "snr_db": 29.3
+    }
+  },
+  {
+    "track": "Al James - Schoolboy Facination",
+    "stem": "other",
+    "seconds": 200.5,
+    "cbr192 q5": {
+      "kbytes": 4813,
+      "kbps": 192,
+      "encode_s": 2.42,
+      "snr_db": 24.17
+    },
+    "vbr V2": {
+      "kbytes": 4787,
+      "kbps": 191,
+      "encode_s": 2.22,
+      "snr_db": 24.12
+    },
+    "vbr V3": {
+      "kbytes": 4416,
+      "kbps": 176,
+      "encode_s": 2.2,
+      "snr_db": 22.94
+    }
+  },
+  {
+    "track": "Al James - Schoolboy Facination",
+    "stem": "vocals",
+    "seconds": 200.5,
+    "cbr192 q5": {
+      "kbytes": 4813,
+      "kbps": 192,
+      "encode_s": 2.37,
+      "snr_db": 22.28
+    },
+    "vbr V2": {
+      "kbytes": 4545,
+      "kbps": 181,
+      "encode_s": 2.2,
+      "snr_db": 26.41
+    },
+    "vbr V3": {
+      "kbytes": 4089,
+      "kbps": 163,
+      "encode_s": 2.18,
+      "snr_db": 24.56
+    }
+  },
+  {
+    "track": "Angels In Amplifiers - I'm Alright",
+    "stem": "drums",
+    "seconds": 179.6,
+    "cbr192 q5": {
+      "kbytes": 4311,
+      "kbps": 192,
+      "encode_s": 2.04,
+      "snr_db": 21.38
+    },
+    "vbr V2": {
+      "kbytes": 5139,
+      "kbps": 229,
+      "encode_s": 2.08,
+      "snr_db": 23.49
+    },
+    "vbr V3": {
+      "kbytes": 4760,
+      "kbps": 212,
+      "encode_s": 2.09,
+      "snr_db": 22.44
+    }
+  },
+  {
+    "track": "Angels In Amplifiers - I'm Alright",
+    "stem": "bass",
+    "seconds": 179.6,
+    "cbr192 q5": {
+      "kbytes": 4311,
+      "kbps": 192,
+      "encode_s": 2.22,
+      "snr_db": 27.84
+    },
+    "vbr V2": {
+      "kbytes": 3131,
+      "kbps": 139,
+      "encode_s": 1.72,
+      "snr_db": 32.56
+    },
+    "vbr V3": {
+      "kbytes": 2636,
+      "kbps": 117,
+      "encode_s": 1.64,
+      "snr_db": 32.73
+    }
+  },
+  {
+    "track": "Angels In Amplifiers - I'm Alright",
+    "stem": "other",
+    "seconds": 179.6,
+    "cbr192 q5": {
+      "kbytes": 4311,
+      "kbps": 192,
+      "encode_s": 2.04,
+      "snr_db": 24.62
+    },
+    "vbr V2": {
+      "kbytes": 4576,
+      "kbps": 204,
+      "encode_s": 2.03,
+      "snr_db": 26.36
+    },
+    "vbr V3": {
+      "kbytes": 4226,
+      "kbps": 188,
+      "encode_s": 1.98,
+      "snr_db": 25.42
+    }
+  },
+  {
+    "track": "Angels In Amplifiers - I'm Alright",
+    "stem": "vocals",
+    "seconds": 179.6,
+    "cbr192 q5": {
+      "kbytes": 4311,
+      "kbps": 192,
+      "encode_s": 2.11,
+      "snr_db": 25.3
+    },
+    "vbr V2": {
+      "kbytes": 3980,
+      "kbps": 177,
+      "encode_s": 2.0,
+      "snr_db": 29.15
+    },
+    "vbr V3": {
+      "kbytes": 3536,
+      "kbps": 158,
+      "encode_s": 1.89,
+      "snr_db": 27.63
+    }
+  },
+  {
+    "track": "Arise - Run Run Run",
+    "stem": "drums",
+    "seconds": 219.4,
+    "cbr192 q5": {
+      "kbytes": 5266,
+      "kbps": 192,
+      "encode_s": 2.67,
+      "snr_db": 26.29
+    },
+    "vbr V2": {
+      "kbytes": 5828,
+      "kbps": 213,
+      "encode_s": 2.49,
+      "snr_db": 29.16
+    },
+    "vbr V3": {
+      "kbytes": 5333,
+      "kbps": 194,
+      "encode_s": 2.48,
+      "snr_db": 28.57
+    }
+  },
+  {
+    "track": "Arise - Run Run Run",
+    "stem": "bass",
+    "seconds": 219.4,
+    "cbr192 q5": {
+      "kbytes": 5266,
+      "kbps": 192,
+      "encode_s": 2.85,
+      "snr_db": 29.48
+    },
+    "vbr V2": {
+      "kbytes": 4538,
+      "kbps": 165,
+      "encode_s": 2.21,
+      "snr_db": 36.61
+    },
+    "vbr V3": {
+      "kbytes": 3917,
+      "kbps": 143,
+      "encode_s": 2.18,
+      "snr_db": 36.58
+    }
+  },
+  {
+    "track": "Arise - Run Run Run",
+    "stem": "other",
+    "seconds": 219.4,
+    "cbr192 q5": {
+      "kbytes": 5266,
+      "kbps": 192,
+      "encode_s": 2.71,
+      "snr_db": 27.54
+    },
+    "vbr V2": {
+      "kbytes": 5240,
+      "kbps": 191,
+      "encode_s": 2.43,
+      "snr_db": 30.53
+    },
+    "vbr V3": {
+      "kbytes": 4689,
+      "kbps": 171,
+      "encode_s": 2.4,
+      "snr_db": 29.64
+    }
+  },
+  {
+    "track": "Arise - Run Run Run",
+    "stem": "vocals",
+    "seconds": 219.4,
+    "cbr192 q5": {
+      "kbytes": 5266,
+      "kbps": 192,
+      "encode_s": 2.52,
+      "snr_db": 28.76
+    },
+    "vbr V2": {
+      "kbytes": 4031,
+      "kbps": 147,
+      "encode_s": 2.24,
+      "snr_db": 34.69
+    },
+    "vbr V3": {
+      "kbytes": 3466,
+      "kbps": 126,
+      "encode_s": 2.16,
+      "snr_db": 32.92
+    }
+  }
+]

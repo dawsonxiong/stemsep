@@ -69,3 +69,85 @@ def test_close_without_finishing():
     enc.close()
     enc.close()
     assert not any(t.is_alive() for t in enc._threads)
+
+
+@pytest.mark.parametrize("length", [1, 1152, 1153])
+def test_streamed_mp3_of_a_tiny_stem(length):
+    """Shorter than an MP3 frame, a frame exactly, and a sample over."""
+    torch.manual_seed(2)
+    wav = torch.randn(2, length) * 0.9
+    enc = StreamingMP3(["a"], SR, 2)
+    for part in _chunks(wav, [1, 5]):
+        if part.shape[-1]:  # the engine never hands over an empty stretch
+            enc.feed({"a": part})
+    assert enc.finish({"a": wav})["a"] == mp3_bytes(wav, SR)
+
+
+def test_separating_into_the_encoder(sep):
+    torch.manual_seed(3)
+    wav = torch.randn(2, SR * 10) * 0.1
+    enc = StreamingMP3(sep.sources, SR, 2)
+    try:
+        result = sep.separate(wav, sink=enc.feed)
+        out = enc.finish(result)
+    finally:
+        enc.close()
+    for name in sep.sources:
+        assert out[name] == mp3_bytes(result[name], SR)
+
+
+def test_a_failed_separation_stops_the_encoder(sep):
+    """As the app runs it: `close` in a finally, after separate raised
+    mid-song with stretches already fed."""
+    fed = []
+    enc = StreamingMP3(sep.sources, SR, 2)
+
+    def progress(done):
+        if fed:
+            raise RuntimeError("the GPU fell over")
+
+    def sink(part):
+        fed.append(part)
+        enc.feed(part)
+
+    with pytest.raises(RuntimeError, match="fell over"):
+        try:
+            sep.separate(torch.randn(2, SR * 20) * 0.1, progress=progress, sink=sink)
+        finally:
+            enc.close()
+    assert fed and not any(t.is_alive() for t in enc._threads)
+
+
+def test_a_failed_flush_doesnt_hang(monkeypatch):
+    """The end of the stream was already taken when the flush failed, so
+    there's nothing left to drain."""
+    import threading
+
+    from stemsep import audio
+
+    class Broken:
+        def __init__(self, real):
+            self.real = real
+
+        def encode(self, pcm):
+            return self.real.encode(pcm)
+
+        def flush(self):
+            raise RuntimeError("flush failed")
+
+    lame = audio._lame
+    monkeypatch.setattr(audio, "_lame", lambda *a: Broken(lame(*a)))
+    enc = StreamingMP3(["a"], SR, 2)
+    enc.feed({"a": torch.zeros(2, 100)})
+    raised = []
+
+    def finish():
+        try:
+            enc.finish({"a": torch.zeros(2, 100)})
+        except RuntimeError as e:
+            raised.append(e)
+
+    t = threading.Thread(target=finish, daemon=True)
+    t.start()
+    t.join(10)
+    assert not t.is_alive() and raised

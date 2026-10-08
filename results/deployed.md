@@ -16,3 +16,15 @@ The first call after each deploy (47.5 s baseline, 29.2 s staging) took the memo
 Every staging job wrote four stems of `audio/mpeg`, 5,878,804 bytes and 244.95 s each. A junk upload returned `status: error` with the user-facing "couldn't be read as audio" message, and the container kept serving.
 
 Cost per warm job at Modal's prices for 4 cores and 8 GiB: baseline 18.4 s × $0.000292/s ≈ 0.54¢; staging 7.9 s × $0.000376/s ≈ 0.30¢.
+
+## Second pass, per stage
+
+Staging (`stem-demucs-staging`, A10) warm jobs, with webhooks to a Modal HTTPS endpoint and stage timings from the job's own log. Six warm jobs before this pass:
+
+`r2_client 0.004, report_5 0.29, fetch 0.27, report_15 0.40, decode 0.82, separate 1.89, report_80 0.35, encode_upload 3.67, report_ready 0.30`: caller sees 8.0–8.2 s.
+
+After (progress reports in the background, streaming encode, libsndfile decode, small first batch), five warm jobs:
+
+`fetch 0.30–0.36, decode 0.55, separate 2.11, encode 1.37, upload 0.63–1.13, report_ready 0.21–0.23`: caller sees 5.3–5.8 s (other runs with slower R2 and webhook responses: 5.9–6.7 s).
+
+Cold jobs (after > scaledown_window idle), separate including the wait for the background warm-up: 2.3–3.0 s (one 4.0 s), against 3.1–3.5 s with no warm-up.

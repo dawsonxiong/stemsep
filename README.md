@@ -73,6 +73,32 @@ The GPU snapshot restores the model already on the GPU and warmed up. It's the o
 
 **Vocal-only specialist.** `separate(wav, stems=[...])` runs only the sub-models of a bag (e.g. `htdemucs_ft`) that contribute to the requested stems. stemplayer needs all four, so it uses `htdemucs`.
 
+## Second pass: the whole job
+
+With separation down to ~2 s, the rest of the job mattered more. Each job now logs per-stage timings. These are stemplayer's warm jobs on an A10, uploading the same 245 s song, with webhooks going to a real HTTPS endpoint (`results/deployed.md`):
+
+| stage | before this pass | after |
+|---|--:|--:|
+| progress webhooks (3, blocking) | 1.05 s | 0 s: sent from a thread, in order |
+| fetch from R2 | ~0.3–0.6 s | same |
+| decode | 0.82 s | 0.43 s: libsndfile in process |
+| separate, then encode | 1.89 s + ~3.1 s | 2.1 s, then a 1.4 s tail: encoded while separating |
+| upload to R2 | overlapped with encoding | ~0.6–1.4 s |
+| final webhook | ~0.3 s | ~0.2–0.6 s |
+| **warm job, as the caller sees it** | **~8.1 s** | **~5.9–6.4 s** |
+
+**Encoding while separating.** `separate(wav, sink=...)` hands each stretch of the stems to a sink as soon as no later chunk can change it. `StreamingMP3` feeds those stretches to one LAME encoder per stem. The catch is demucs's clip guard, which scales a whole stem down when its peak would clip, and the peak isn't known until the end. So stems are encoded optimistically and re-encoded whole in the rare case they need it. No stem of 12 full MUSDB songs came within 1% of clipping (`results/peaks.json`), even though every mixture peaked at full scale. Either way the bytes are identical to encoding afterwards. End to end without network that's 5.82 → 4.37 s on an A10 and 8.26 → 6.29 s on an L4 (`results/e2e/`). A small first batch (2 chunks) gets the encoders going sooner.
+
+**Decoding in process.** libsndfile reads MP3, WAV, FLAC and Ogg directly, a third faster than ffmpeg piping 86 MB of samples out, and lands within 3e-6 of ffmpeg's samples. Anything else, or anything that needs resampling, still goes through ffmpeg.
+
+**Cold starts.** A cold container's first separation spent ~1.2 s loading CUDA kernels. A 20 s throwaway separation now runs on a background thread right after restore, alongside the first song's download and decode, which takes most of that cost off the song. In practice GPU memory snapshots were worse: on staging, cold jobs took 19–44 s against 9–25 s with the CPU snapshot, while Modal took fresh snapshots on new hosts.
+
+What didn't help:
+- **More CPU cores.** 6 or 8 instead of 4 made no difference: each stem's LAME is single-threaded, ~2.4 s for the drums at `-q 5`, and that sets the floor.
+- **A faster LAME.** LAME 3.100 built with `-O3 -march=x86-64-v3` was 1% faster than lameenc's, and adding fast-math only 9% (`results/lame-build.json`).
+- **VBR.** `-V 2` shrank stems only 4% overall. The drums, the slowest stem to encode, grew to 206–229 kbps, so the critical path didn't move (`results/vbr.json`).
+- **R2 transfers.** Ranged parallel downloads were slower than one GET. Uploads are ~5 MB/s per connection whatever the client (boto3, requests, httpx) or socket buffer size, and R2's 5 MiB minimum part size rules out parallel parts for a 6 MB stem.
+
 ## How it works
 
 `model.py` splits `HTDemucs.forward` into `pre` (STFT and normalization, float32), `Core` (both encoders, the cross-transformer, both decoders) and `post` (mask and iSTFT, float32). Only `Core` changes per backend: eager, autocast, `torch.compile`, or an ONNX Runtime session bound zero-copy to torch's buffers. `engine.py` plans the chunks so the last one ends flush with the song, stacks them, runs them `batch_size` at a time, and cross-fades them back with demucs's triangular window. `audio.py` decodes with ffmpeg, mapping channels as demucs does, and encodes with lameenc.

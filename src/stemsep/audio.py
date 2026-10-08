@@ -6,6 +6,7 @@ I/O backends, and encoders in separate processes really do run side by side.
 
 from __future__ import annotations
 
+import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from typing import Iterable
@@ -49,16 +50,47 @@ def decode(path: str, samplerate: int = 44100, channels: int = 2) -> torch.Tenso
 
 def _read_soundfile(path: str, samplerate: int) -> np.ndarray | None:
     """[length, channels] float32 frames, or None if libsndfile can't read
-    the file at `samplerate` as it is."""
+    the file at `samplerate` as it is, or would read it differently from
+    ffmpeg."""
     try:
         import soundfile as sf
 
-        with sf.SoundFile(path) as f:
-            if f.samplerate != samplerate:
+        with open(path, "rb") as raw, sf.SoundFile(reads := _Reads(raw)) as f:
+            # libsndfile keeps Vorbis's channel order, left, centre, right,
+            # where ffmpeg, and so demucs, puts right second.
+            if f.samplerate != samplerate or f.channels > 2:
                 return None
-            return f.read(dtype="float32", always_2d=True)
+            frames = f.read(dtype="float32", always_2d=True)
+            # An MP3's length is libsndfile's guess, from its Xing header or,
+            # without one, from the first frame's bitrate, and it reads no
+            # further: a VBR file with no header came back a quarter of its
+            # length. A whole read reaches the end of the file, short of at
+            # most a tag.
+            if f.format == "MP3" and os.fstat(raw.fileno()).st_size - reads.end > 4096:
+                return None
+            # Nothing at all may be a WAV whose header never got its sizes
+            # filled in, which ffmpeg reads to the end of the file.
+            return frames if len(frames) else None
     except Exception:
         return None
+
+
+class _Reads:
+    """A file that remembers where its last read ended."""
+
+    def __init__(self, f):
+        self.f, self.end = f, 0
+
+    def seek(self, *args):
+        return self.f.seek(*args)
+
+    def tell(self):
+        return self.f.tell()
+
+    def readinto(self, buf):
+        n = self.f.readinto(buf)
+        self.end = self.f.tell()
+        return n
 
 
 def _read_ffmpeg(path: str, samplerate: int) -> np.ndarray:
@@ -182,6 +214,7 @@ class StreamingMP3:
             self._queues[name].put(segment)
 
     def _run(self, name: str, channels: int) -> None:
+        segment = ...  # anything but None, until the end has been taken
         try:
             encoder = _lame(self.samplerate, channels, self.bitrate, self.quality)
             data = bytearray()
@@ -193,9 +226,11 @@ class StreamingMP3:
             self._data[name] = data
         except BaseException as e:  # surfaced by finish
             self._errors.append(e)
-            # Drain, so feed never blocks on a dead encoder.
-            while self._queues[name].get() is not None:
-                pass
+            # Drain to the end, freeing what's queued, so close's join
+            # returns. If the flush failed, the end was already taken, and
+            # waiting for another would hang it.
+            while segment is not None:
+                segment = self._queues[name].get()
 
     def close(self) -> None:
         """Stop the encoders without waiting for a result, as when the

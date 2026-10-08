@@ -1,0 +1,8 @@
+{
+  "lameenc": 2.372,
+  "debian libmp3lame": 2.531,
+  "built -O2": 2.548,
+  "built -O3 x86-64-v3": 2.343,
+  "built -O3 v3 fast-math": 2.157,
+  "note": "seconds to encode the 245 s drums stem at 192 kbps -q 5, best of 3, Modal CPU (4 cores); all outputs 5,878,804 bytes, none byte-identical to lameenc"
+}

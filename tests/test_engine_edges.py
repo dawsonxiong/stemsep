@@ -186,6 +186,40 @@ def test_bag_weights_and_stem_subset(stub, seg):
     assert torch.allclose(out["bass"], -centred + ref.mean(), atol=1e-5)
 
 
+@pytest.mark.parametrize("static_batch", [False, True])
+@pytest.mark.parametrize("first_batch", [1, 2, 3])
+def test_sink_gets_each_sample_once_in_order(stub, seg, static_batch, first_batch):
+    stub.config = Config(batch_size=2, static_batch=static_batch, first_batch=first_batch)
+    torch.manual_seed(0)
+    for length in (2, seg, seg + 1, 3 * seg + 12_345, 7 * seg + 1):
+        stub._cores = [PassThrough()]
+        parts = []
+        out = stub.separate(torch.randn(2, length) * 0.1, sink=parts.append)
+        assert all(p["vocals"].shape[-1] > 0 for p in parts)
+        for name in out:
+            assert torch.equal(torch.cat([p[name] for p in parts], -1), out[name])
+        n = len(plan_offsets(length, seg, stub.config.overlap))
+        batches = stub._cores[0].batches
+        # The small first batch is only for an eager network: a compiled one
+        # would see a second shape.
+        if not static_batch and n > first_batch:
+            assert batches[0] == first_batch and len(parts) == len(batches)
+        if static_batch:
+            assert set(batches) == {2}
+
+
+def test_sink_gets_a_bags_result_whole(stub, seg):
+    """With two models, nothing is final until the second has run."""
+    m = stub.bag.models[0]
+    stub.bag.models = torch.nn.ModuleList([m, m])
+    stub.bag.weights = [[1.0] * 4, [1.0] * 4]
+    stub._cores = [PassThrough(2.0), PassThrough(-1.0)]
+    stub.config = Config(batch_size=2)
+    parts = []
+    out = stub.separate(torch.randn(2, 3 * seg) * 0.1, sink=parts.append)
+    assert len(parts) == 1 and all(torch.equal(parts[0][n], out[n]) for n in out)
+
+
 # ---- the real model -----------------------------------------------------
 
 
@@ -323,3 +357,50 @@ def test_decode_resamples_through_ffmpeg(tmp_path):
     wav = decode(str(path), SR, 2)
     assert wav.shape[0] == 2
     assert abs(wav.shape[1] - 2 * SR) < 100
+
+
+@needs_ffmpeg
+def test_decode_reads_a_vbr_mp3_without_a_xing_header_to_the_end(tmp_path):
+    """Without the header, libsndfile guesses the length from the first
+    frame's bitrate and reads no further, so a loud start cut the song short."""
+    from stemsep.audio import _read_ffmpeg, decode
+
+    path = tmp_path / "vbr.mp3"
+    graph = "anoisesrc=d=2:a=0.5,apad=whole_dur=8"  # loud, then silent
+    subprocess.run(
+        ["ffmpeg", "-nostdin", "-loglevel", "error", "-f", "lavfi", "-i", graph,
+         "-ac", "2", "-ar", str(SR), "-q:a", "0", "-write_xing", "0", str(path)],
+        check=True,
+    )  # fmt: skip
+    assert decode(str(path), SR, 2).shape[-1] == _read_ffmpeg(str(path), SR).shape[0]
+
+
+@needs_ffmpeg
+def test_decode_keeps_ffmpegs_channel_order(tmp_path):
+    """Vorbis orders three channels left, centre, right; ffmpeg, and so
+    demucs, hands them over as left, right, centre."""
+    import soundfile as sf
+
+    from stemsep.audio import _read_ffmpeg, decode
+
+    path = tmp_path / "three.ogg"
+    t = torch.arange(SR) / SR
+    tone = torch.sin(2 * torch.pi * 440 * t)[:, None] * torch.tensor([1.0, 0.5, 0.25])
+    sf.write(path, tone.numpy(), SR, format="OGG", subtype="VORBIS")
+    theirs = torch.from_numpy(_read_ffmpeg(str(path), SR)[:, :2].T.copy())
+    assert (decode(str(path), SR, 2) - theirs).abs().max() < 1e-4
+
+
+@needs_ffmpeg
+def test_decode_reads_a_wav_whose_header_says_its_empty(tmp_path):
+    """As one left by a recorder that stopped before filling in the sizes:
+    libsndfile believes the header, ffmpeg reads to the end."""
+    from stemsep.audio import decode
+
+    path = tmp_path / "unfinished.wav"
+    _tone(path, 2, rate=SR)
+    data = bytearray(path.read_bytes())
+    at = data.find(b"data")
+    data[at + 4 : at + 8] = bytes(4)
+    path.write_bytes(data)
+    assert decode(str(path), SR, 2).shape[-1] == SR
