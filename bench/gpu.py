@@ -59,8 +59,13 @@ def sweep(name: str, gpu: str) -> list[dict]:
     return configs
 
 
+# The container here has more memory to hold the test set; costs are for
+# stemplayer's production container, which has 8 GiB.
+BILLED_MEMORY_GIB = 8
+
+
 def cost_per_second(gpu: str) -> float:
-    return GPU_PRICE[gpu] + CPU_CORES * CPU_CORE_PRICE + MEMORY_GIB * MEMORY_GIB_PRICE
+    return GPU_PRICE[gpu] + CPU_CORES * CPU_CORE_PRICE + BILLED_MEMORY_GIB * MEMORY_GIB_PRICE
 
 
 @app.cls(
@@ -98,7 +103,11 @@ class Bench:
             "audio_seconds": round(self.duration, 2),
         }
         rows = []
-        reference = None
+        # Per overlap, the first eager fp32 row's output: other rows compare
+        # against the one with the same chunk grid, so "vs fp32" measures
+        # precision, batching or compiling, not the grid (and b8 vs b1 at
+        # 25% is the batching check).
+        references = {}
         for cfg in sweep(sweep_name, self.gpu):
             try:
                 row, estimate = self._measure(cfg)
@@ -108,14 +117,16 @@ class Bench:
                 rows.append({"name": cfg["name"], "error": repr(e),
                              "trace": traceback.format_exc()[-2000:]})  # fmt: skip
                 continue
-            if cfg["name"] == "eager fp32 ov.25 b8":
-                reference = estimate
-            if reference is not None:
+            overlap = cfg.get("overlap")
+            fp32 = cfg.get("precision", "fp32") == "fp32" and cfg.get("backend", "eager") == "eager"
+            if overlap in references:
                 from stemsep.quality import sdr
 
                 row["sdr_vs_fp32"] = round(
-                    statistics.mean(sdr(reference[s], estimate[s]) for s in estimate), 2
+                    statistics.mean(sdr(references[overlap][s], estimate[s]) for s in estimate), 2
                 )
+            elif fp32 and not cfg.get("baseline"):
+                references[overlap] = estimate
             rows.append(row)
             torch.cuda.empty_cache()
         e2e = self._end_to_end()
@@ -137,29 +148,37 @@ class Bench:
         torch.cuda.synchronize()
         load_s = time.perf_counter() - t0
 
-        # The first call pays for cuDNN autotuning, and compiling.
-        warm = self.mixture[:, : 44100 * 20]
+        # The first call pays for cuDNN autotuning, and compiling. On the
+        # whole song, so every batch shape the timed runs see is warm (a
+        # short clip never fills a batch of 8).
         t0 = time.perf_counter()
-        sep.separate(warm)
+        sep.separate(self.mixture)
         torch.cuda.synchronize()
         first_call_s = time.perf_counter() - t0
 
+        # Drop what autotuning's trial workspaces left cached, so peak
+        # reserved is what separating needs.
+        torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
-        times, profiles, estimate = [], [], None
+        times, estimate = [], None
         for _ in range(REPEATS):
-            prof = Profiler("cuda")
             torch.cuda.synchronize()
             t0 = time.perf_counter()
-            estimate = sep.separate(self.mixture, profiler=prof)
+            estimate = sep.separate(self.mixture)
             torch.cuda.synchronize()
             times.append(time.perf_counter() - t0)
-            profiles.append(prof.as_dict())
+        # Stages from a run of their own: the profiler synchronizes at every
+        # stage boundary, which would slow stemsep's timed runs but not the
+        # baseline's, which ignores it.
+        prof = Profiler("cuda")
+        sep.separate(self.mixture, profiler=prof)
         seconds = statistics.median(times)
         quality = report(self.stems, estimate, 44100)
 
         row = {
             "name": cfg["name"],
             "config": kwargs,
+            "cudnn_benchmark": torch.backends.cudnn.benchmark,
             "load_s": round(load_s, 2),
             "first_call_s": round(first_call_s, 2),
             "separate_s": round(seconds, 3),
@@ -167,7 +186,7 @@ class Bench:
             "realtime_x": round(self.duration / seconds, 1),
             "peak_alloc_gib": round(torch.cuda.max_memory_allocated() / 2**30, 2),
             "peak_reserved_gib": round(torch.cuda.max_memory_reserved() / 2**30, 2),
-            "stages_s": profiles[times.index(seconds)] if seconds in times else profiles[0],
+            "stages_s": prof.as_dict(),
             "inference_cost_per_audio_min": round(
                 seconds * cost_per_second(self.gpu) / (self.duration / 60), 6
             ),
@@ -186,7 +205,7 @@ class Bench:
         from stemsep import Config, Profiler, Separator, audio
 
         sep = Separator("htdemucs", Config(overlap=0.10, batch_size=8, precision="fp16"))
-        sep.separate(self.mixture[:, : 44100 * 20])
+        sep.separate(self.mixture)  # warm every batch shape, as in _measure
         out = {}
         variants = {
             "lameenc q5": (audio.encode_mp3, 5),

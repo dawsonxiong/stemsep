@@ -180,6 +180,11 @@ class OnnxCore:
         for shape in (*self.shapes.values(), *self.out_shapes.values()):
             if not all(isinstance(d, int) for d in shape):
                 raise ValueError(f"{path} has dynamic shapes; export it with export()")
+        # Buffers are bound and fed as float32; an fp16 export without
+        # keep_io_types would only fail at the first run.
+        for io in (*self.session.get_inputs(), *self.session.get_outputs()):
+            if io.name in (*INPUTS, *OUTPUTS) and io.type != "tensor(float)":
+                raise ValueError(f"{path}: {io.name} is {io.type}, not float32; use export()")
 
         if self.device.type == "cuda":
             self._bind_cuda()
@@ -187,6 +192,8 @@ class OnnxCore:
                 # ORT runs once plainly, to allocate, then captures on the
                 # next run. Do both now, while nothing else on the device can
                 # break the capture, rather than on the caller's first song.
+                # The buffers were allocated and zeroed on torch's stream.
+                self.stream.wait_stream(torch.cuda.current_stream(self.device))
                 for _ in range(2):
                     self.session.run_with_iobinding(self.binding, self.run_options)
                 self.stream.synchronize()

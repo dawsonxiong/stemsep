@@ -25,7 +25,7 @@ def table(result: dict) -> str:
         f"CUDA {env['cuda']}, {env['audio_seconds']:.0f} s song",
         "",
         "| config | separate (s) | speedup | × realtime | peak VRAM (GiB) | ¢ per audio min "
-        "| SDR (dB) | cSDR (dB) | vs fp32 (dB) | first call (s) |",
+        "| SDR (dB) | cSDR (dB) | vs fp32, same overlap (dB) | first call (s) |",
         "|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|",
     ]
     for r in rows:

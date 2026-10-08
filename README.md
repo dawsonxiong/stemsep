@@ -1,6 +1,6 @@
 # stemsep
 
-Faster [HTDemucs](https://github.com/facebookresearch/demucs) inference on Modal GPUs. It replaces `demucs.apply.apply_model` in [stemplayer](https://github.com/dawsonxiong/stemplayer)'s separation worker: same model, same weights, same quality, at about a third of the GPU time.
+Faster [HTDemucs](https://github.com/facebookresearch/demucs) inference on Modal GPUs. It replaces `demucs.apply.apply_model` in [stemplayer](https://github.com/dawsonxiong/stemplayer)'s separation worker: same model, same weights, same quality, at about a third of the GPU time on an A10 (1.7–2.9× faster across T4, L4 and A10).
 
 ```python
 from stemsep import Config, Separator
@@ -34,7 +34,7 @@ Quality on 12 full MUSDB18-HQ test songs, 47 minutes (`results/quality/`):
 
 | | median SDR | Δ vs production, paired |
 |---|--:|--:|
-| demucs, production settings | 8.55 | – |
+| demucs, production settings | 8.56 | – |
 | stemsep fp32, 25% overlap | 8.58 | −0.01 ± 0.01 dB |
 | stemsep fp16, 10% overlap (shipped) | 8.54 | −0.02 ± 0.01 dB |
 | stemsep fp32, 5% overlap | 8.46 | −0.06 ± 0.02 dB |
@@ -45,9 +45,9 @@ Moving the chunk grid alone moves a song's SDR by ±0.02 dB, so the shipped conf
 
 Measured against the plan's priorities.
 
-**Profiling (P0).** `Profiler` times each stage with the GPU synchronized at the boundaries. Its first finding changed the plan: once separation got faster, **MP3 encoding was most of the job** (10–13 s of 16 on an L4). LAME's `-q 5` encodes 1.7× faster than demucs's `-q 2` at the same SNR against the source (25.1 dB both, `results/encode-cpu4.json`). In-process lameenc beat ffmpeg subprocesses by ~1.5×; lameenc releases the GIL, so four threads encode four stems at once. 8 cores barely beat 4.
+**Profiling (P0).** `Profiler` times each stage with the GPU synchronized at the boundaries. Its first finding changed the plan: once separation got faster, **MP3 encoding was most of the job** (10–12 s of 14–17 s on an L4, `results/full/L4.json`). LAME's `-q 5` encodes 1.7× faster than demucs's `-q 2` at the same SNR against the source (25.1 dB both, `results/encode-cpu4.json`). In-process lameenc beat ffmpeg subprocesses by ~1.5×; lameenc releases the GIL, so four threads encode four stems at once. 8 cores barely beat 4.
 
-**Chunk overlap (P0).** 25% → 10% runs 20% fewer chunks for −0.01 dB. 5% saves only another ~5% and costs a measurable −0.06 dB.
+**Chunk overlap (P0).** 25% → 10% runs ~16% fewer chunks for −0.01 dB. 5% saves only another ~5% and costs a measurable −0.06 dB.
 
 **Persistent model loading and cold starts (P0).** The model already loaded once per container from a memory snapshot. The surprise was cuDNN autotuning: `cudnn.benchmark` added ~12 s to a fresh container's first song and saved ~2% after, so it's off. Cold start on an L4, from the request to a 10 s separation's result (median of 8, `results/coldstart.json`):
 
@@ -59,15 +59,15 @@ Measured against the plan's priorities.
 
 The GPU snapshot restores the model already on the GPU and warmed up. It's the obvious next step, but it's alpha, so stemplayer keeps the CPU snapshot for now. Both kinds occasionally take 20–140 s while Modal takes a fresh snapshot on a new host. End to end, a cold job on staging took 17–20 s against 29–33 s for the old code.
 
-**GPU type (P0).** Compared on cost per completed song, not raw speed. Separation is cheapest on the A10, and A10 hosts also have faster CPUs, which now matters more than the GPU: end to end it's 5.8 s on an A10 against 8.9 s on an L4 and 8.7 s on a T4, at 0.23–0.28¢ per song for all three (`results/e2e/`).
+**GPU type (P0).** Compared on cost per completed song, not raw speed. Separation is cheapest on the A10, and A10 hosts also have faster CPUs, which now matters more than the GPU: end to end it's 5.8 s on an A10 against 8.9 s on an L4 and 8.7 s on a T4, at 0.22–0.28¢ per song for all three (`results/e2e/`, billed at the benchmark's 4 cores and 16 GiB).
 
-**Batching (P1).** demucs runs one 7.8 s chunk at a time. stemsep cuts the song up front and runs 8 chunks per forward pass. Every chunk is normalized on its own inside the model, so batching changes nothing numerically (> 50 dB agreement). Batch 16 is ~4% faster than 8 for twice the VRAM.
+**Batching (P1).** demucs runs one 7.8 s chunk at a time. stemsep cuts the song up front and runs 8 chunks per forward pass. Every chunk is normalized on its own inside the model, so batching changes nothing numerically (> 50 dB agreement). Batch 16 is 4–10% faster than 8 for nearly twice the VRAM.
 
 **Mixed precision (P1).** The STFT and iSTFT stay float32. Only the network runs under autocast. fp16 is 45 dB from fp32 and bf16 31 dB, and both score identically on MUSDB. fp16 is the default because the T4 has no bf16 units.
 
-**`torch.compile` (P1).** Compiling the network (max-autotune) is another 1.7–1.8× on top of eager fp16, but takes 6–8 minutes per GPU type. Not shipped: it would need a compile cache or a GPU snapshot that's rebuilt per deploy. It's available as `Config(backend="compile")`.
+**`torch.compile` (P1).** Compiling the network (max-autotune) is another 1.7–1.8× over eager bf16 on an L4 or A10 and 1.3× over eager fp16 on a T4, but takes 6–7 minutes per GPU type. Not shipped: it would need a compile cache or a GPU snapshot that's rebuilt per deploy. It's available as `Config(backend="compile")`.
 
-**ONNX Runtime / TensorRT (P2).** The network exports cleanly (`onnx_backend.export`; the STFTs stay in torch). On ORT's CUDA provider it's 7–25% *slower* than eager fp16 and needs 1.6–3× the VRAM, since attention isn't fused. ORT's TensorRT provider is 1.8–1.9× faster than eager fp16 with less VRAM, but builds an engine for 10–13 minutes per GPU type and batch size and adds ~2 GB of libraries. Not shipped: after these changes separation is about a third of a job, so TensorRT would save ~1 s per song. It's available as `Config(backend="onnx", onnx_options={"tensorrt": ...})`, with numbers in `results/onnx/`.
+**ONNX Runtime / TensorRT (P2).** The network exports cleanly (`onnx_backend.export`; the STFTs stay in torch). On ORT's CUDA provider it's 8–28% *slower* than eager fp16 and needs 1.6–3× the VRAM, since attention isn't fused. ORT's TensorRT provider is 1.8–1.9× faster than eager fp16 at batch 4, with a quarter less VRAM (1.6× at batch 8, with ~10% more), but builds an engine for 10–13 minutes per GPU type and batch size and adds ~2 GB of libraries. Not shipped: after these changes separation is about a third of a job, so TensorRT would save ~1 s per song. It's available as `Config(backend="onnx", onnx_options={"tensorrt": ...})`, with numbers in `results/onnx/`.
 
 **A C++/Rust rewrite (P3).** Not worth it. The network runs in cuDNN, cuBLAS and fused attention kernels either way. What's left is MP3 encoding and decoding, which are already native code. A runtime of our own would cost months to save under a second.
 
