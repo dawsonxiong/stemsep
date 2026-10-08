@@ -30,6 +30,8 @@ BASELINE = {"name": "demucs apply_model (production)", "baseline": True}
 
 def sweep(name: str, gpu: str) -> list[dict]:
     """Configs to run, as stemsep.Config kwargs plus a display name."""
+    if name == "e2e":
+        return []
     half = "bf16" if gpu in ("L4", "A10", "L40S", "A100", "H100") else "fp16"
     if name == "quick":
         return [

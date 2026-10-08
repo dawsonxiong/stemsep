@@ -9,6 +9,8 @@ import json
 import sys
 from pathlib import Path
 
+from gpu import cost_per_second
+
 
 def fmt(v, digits=2):
     return "–" if v is None else f"{v:.{digits}f}"
@@ -43,7 +45,8 @@ def table(result: dict) -> str:
         lines += ["", "End to end (decode MP3 → separate → encode 4 MP3s), fp16 ov.10 b8:", ""]
         for enc, v in e2e.items():
             stages = ", ".join(f"{k} {s:.2f}s" for k, s in v["stages_s"].items())
-            lines.append(f"- {enc} encoder: **{v['total_s']:.2f} s** ({stages})")
+            cost = v["total_s"] * cost_per_second(env["gpu"]) * 100
+            lines.append(f"- {enc}: **{v['total_s']:.2f} s**, {cost:.3f}¢ per song ({stages})")
     return "\n".join(lines)
 
 

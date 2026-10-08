@@ -1,0 +1,45 @@
+{
+  "env": {
+    "gpu": "A10",
+    "device": "NVIDIA A10G",
+    "vram_gib": 22.1,
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "arch_list": [
+      "sm_75",
+      "sm_80",
+      "sm_86",
+      "sm_90",
+      "sm_100",
+      "sm_120"
+    ],
+    "audio_seconds": 244.92
+  },
+  "rows": [],
+  "e2e": {
+    "lameenc q5": {
+      "total_s": 5.804,
+      "stages_s": {
+        "decode": 0.8517,
+        "separate": 1.8957,
+        "encode": 3.0562
+      }
+    },
+    "lameenc q2": {
+      "total_s": 10.176,
+      "stages_s": {
+        "decode": 0.8335,
+        "separate": 1.8919,
+        "encode": 7.4501
+      }
+    },
+    "ffmpeg q5": {
+      "total_s": 6.832,
+      "stages_s": {
+        "decode": 0.9309,
+        "separate": 1.8905,
+        "encode": 4.0107
+      }
+    }
+  }
+}
