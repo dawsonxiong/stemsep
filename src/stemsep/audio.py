@@ -189,9 +189,10 @@ class StreamingMP3:
 
     The rescale that keeps a stem from clipping needs the stem's peak, which
     isn't known until the end. So each stem is encoded as it arrives as if it
-    won't need one, and `finish` encodes it again, whole, in the rare case it
-    does: no stem of 12 full MUSDB songs came within 1% of clipping. Either
-    way the bytes are exactly `mp3_bytes`'s."""
+    won't need one. A stem that turns out to need it stops there, and is
+    encoded whole once the separation is done. No stem of 12 full MUSDB songs
+    came close, but a loud commercial master's drums and bass both did.
+    Either way the bytes are exactly `mp3_bytes`'s."""
 
     def __init__(
         self,
@@ -227,11 +228,15 @@ class StreamingMP3:
             encoder = _lame(self.samplerate, channels, self.bitrate, self.quality)
             data = bytearray()
             while (segment := self._queues[name].get()) is not None:
+                if self._needs_rescale(name):
+                    continue  # this encoding will be thrown away; stop paying for it
                 segment = segment.float()
                 self._peak[name] = max(self._peak[name], segment.abs().max().item())
-                data += encoder.encode(_to_int16(segment).tobytes())
-            data += encoder.flush()
-            self._data[name] = data
+                if not self._needs_rescale(name):
+                    data += encoder.encode(_to_int16(segment).tobytes())
+            if not self._needs_rescale(name):
+                data += encoder.flush()
+                self._data[name] = data
         except BaseException as e:  # surfaced by finish
             self._errors.append(e)
             # Drain to the end, freeing what's queued, so close's join
@@ -239,6 +244,11 @@ class StreamingMP3:
             # waiting for another would hang it.
             while segment is not None:
                 segment = self._queues[name].get()
+
+    def _needs_rescale(self, name: str) -> bool:
+        """Whether `_rescale` will scale this stem down, as far as it's been
+        seen. Once true it stays true: the peak only grows."""
+        return 1.01 * self._peak[name] > 1
 
     def close(self) -> None:
         """Stop the encoders without waiting for a result, as when the
@@ -253,18 +263,27 @@ class StreamingMP3:
     def finish(self, stems: dict[str, torch.Tensor]) -> dict[str, bytes]:
         """Each stem's MP3. `stems` is `separate`'s result, used to encode
         again any stem that turned out to need rescaling."""
-        self.close()
-        if self._errors:
-            raise self._errors[0]
-        clipped = [n for n, peak in self._peak.items() if 1.01 * peak > 1]
-        out = {n: bytes(d) for n, d in self._data.items() if n not in clipped}
-        if clipped:
-            with ThreadPoolExecutor(len(clipped)) as pool:
-                encoded = pool.map(
-                    lambda n: mp3_bytes(stems[n], self.samplerate, self.bitrate, self.quality),
-                    clipped,
-                )
-                out.update(zip(clipped, encoded))
+        # Stems already known to clip start their real encoding now, beside
+        # the encoders still finishing the rest. Loud masters often have one:
+        # a commercial track's drums peaked at 1.64.
+        def encode(name: str) -> bytes:
+            return mp3_bytes(stems[name], self.samplerate, self.bitrate, self.quality)
+
+        with ThreadPoolExecutor(len(self._queues)) as pool:
+            early = {n: pool.submit(encode, n) for n in self._queues if self._needs_rescale(n)}
+            self.close()
+            if self._errors:
+                for f in early.values():
+                    f.cancel()
+                raise self._errors[0]
+            # A stem whose peak crossed the line in its last stretch.
+            late = {
+                n: pool.submit(encode, n)
+                for n in self._queues
+                if self._needs_rescale(n) and n not in early
+            }
+            out = {n: bytes(d) for n, d in self._data.items() if not self._needs_rescale(n)}
+            out.update({n: f.result() for n, f in {**early, **late}.items()})
         return out
 
 
