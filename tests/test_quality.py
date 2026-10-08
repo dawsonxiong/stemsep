@@ -8,7 +8,14 @@ import numpy as np
 import pytest
 import torch
 
-from stemsep.quality import chunked_sdr, load_testset, read_wav, report, sdr
+from stemsep.quality import (
+    chunked_sdr,
+    load_fulltracks,
+    load_testset,
+    read_wav,
+    report,
+    sdr,
+)
 
 SR = 8000
 
@@ -174,3 +181,33 @@ def test_load_testset(tmp_path):
     assert torch.equal(got["bass"], torch.from_numpy(parts["bass"][:, 1000:2000]))
     with pytest.raises(KeyError):
         load_testset(str(tmp_path), clip="nope")
+
+
+def test_load_fulltracks(tmp_path):
+    stems = ("drums", "bass", "other", "vocals")
+    rng = np.random.default_rng(3)
+    entries = []
+    for name, length in (("A - One", 1500), ("B - Two", 2500)):
+        d = tmp_path / name[0].lower()
+        d.mkdir()
+        parts = {s: (rng.standard_normal((2, length)) * 0.1).astype(np.float32) for s in stems}
+        for s in stems:
+            write_wav(d / f"{s}.wav", parts[s], 44100, "pcm16")
+        # 16-bit rounding of the sum, as in MUSDB18-HQ.
+        write_wav(d / "mixture.wav", sum(parts.values()), 44100, "pcm16")
+        entries.append({"name": name, "dir": d.name, "length": length})
+    manifest = {"samplerate": 44100, "channels": 2, "stems": list(stems), "tracks": entries}
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest))
+
+    songs = list(load_fulltracks(str(tmp_path)))
+    assert [s[0] for s in songs] == ["A - One", "B - Two"]
+    name, mix, got, rate = songs[1]
+    assert rate == 44100 and mix.shape == (2, 2500) and list(got) == list(stems)
+    assert torch.allclose(mix, sum(got.values()), atol=4 * 2**-15)
+
+    (_, mix, got, _), = load_fulltracks(str(tmp_path), tracks=["a"], mixture="sum")
+    assert mix.shape == (2, 1500) and torch.equal(mix, sum(got.values()))
+    with pytest.raises(KeyError):
+        list(load_fulltracks(str(tmp_path), tracks=["nope"]))
+    with pytest.raises(ValueError):
+        list(load_fulltracks(str(tmp_path), mixture="mp3"))

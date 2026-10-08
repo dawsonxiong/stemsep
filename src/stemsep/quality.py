@@ -13,7 +13,8 @@ Two SDRs, both plain energy ratios with no BSS Eval distortion filter:
 `load_testset` reads the set that `bench/testset.py` writes to the
 `stemsep-bench` Modal Volume (mounted at /data, so the set is at
 /data/testset). It needs only numpy and torch, plus ffmpeg when the MP3
-mixture is asked for.
+mixture is asked for. `load_fulltracks` reads the whole MUSDB18-HQ songs
+that `bench/fulltracks.py` writes to /data/fulltracks.
 """
 
 from __future__ import annotations
@@ -22,12 +23,14 @@ import json
 import math
 import os
 import struct
-from typing import Literal, Mapping
+from collections.abc import Iterator, Mapping
+from typing import Literal
 
 import numpy as np
 import torch
 
 TESTSET_ROOT = "/data/testset"
+FULLTRACKS_ROOT = "/data/fulltracks"
 STEMS = ("drums", "bass", "other", "vocals")
 
 ArrayLike = torch.Tensor | np.ndarray
@@ -252,11 +255,60 @@ def load_testset(
     return mix, stems, rate
 
 
+def fulltracks_manifest(root: str = FULLTRACKS_ROOT) -> dict:
+    """The full-track set's manifest.json."""
+    with open(os.path.join(root, "manifest.json")) as f:
+        return json.load(f)
+
+
+def load_fulltracks(
+    root: str = FULLTRACKS_ROOT,
+    *,
+    tracks: list[str] | None = None,
+    mixture: Literal["dataset", "sum"] = "dataset",
+) -> Iterator[tuple[str, torch.Tensor, dict[str, torch.Tensor], int]]:
+    """(name, mixture [2, L], {stem: [2, L]}, samplerate) for each song of
+    the full-track set at `root`, in manifest order, all float32 on the CPU.
+
+    A generator, one song at a time: the twelve songs hold about 1.4 GB as
+    float32. `tracks` picks songs by manifest `name` or `dir`. The default
+    mixture is the dataset's own, as MUSDB evaluations use; in MUSDB18-HQ it
+    equals the sum of the stems up to 16-bit rounding (the manifest's
+    `mixture_vs_sum_sdr`). `mixture="sum"` uses the exact sum instead.
+    """
+    if mixture not in ("dataset", "sum"):
+        raise ValueError(f"mixture must be 'dataset' or 'sum', not {mixture!r}")
+    manifest = fulltracks_manifest(root)
+    rate = manifest["samplerate"]
+    entries = manifest["tracks"]
+    if tracks is not None:
+        known = {key for t in entries for key in (t["name"], t["dir"])}
+        unknown = [t for t in tracks if t not in known]
+        if unknown:
+            raise KeyError(f"no tracks {unknown} in {root}")
+        entries = [t for t in entries if t["name"] in tracks or t["dir"] in tracks]
+    for entry in entries:
+        base = os.path.join(root, entry["dir"])
+        wavs = {}
+        for name in ("mixture", *manifest["stems"]):
+            wav, sr = read_wav(os.path.join(base, f"{name}.wav"))
+            if sr != rate:
+                raise ValueError(f"{entry['dir']}/{name}.wav is {sr} Hz, manifest says {rate}")
+            wavs[name] = torch.from_numpy(wav)
+        mix = wavs.pop("mixture")
+        if mixture == "sum":
+            mix = sum(wavs.values())
+        yield entry["name"], mix, wavs, rate
+
+
 __all__ = [
+    "FULLTRACKS_ROOT",
     "STEMS",
     "TESTSET_ROOT",
     "chunked_sdr",
+    "fulltracks_manifest",
     "is_silent",
+    "load_fulltracks",
     "load_testset",
     "read_wav",
     "report",

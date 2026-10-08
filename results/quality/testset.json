@@ -1,0 +1,1450 @@
+{
+  "env": {
+    "device": "NVIDIA L4",
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0"
+  },
+  "configs": [
+    {
+      "name": "demucs shifts=0",
+      "kind": "demucs",
+      "shifts": 0
+    },
+    {
+      "name": "demucs shifts=1 seed 0",
+      "kind": "demucs",
+      "shifts": 1,
+      "seed": 0
+    },
+    {
+      "name": "demucs shifts=1 seed 1",
+      "kind": "demucs",
+      "shifts": 1,
+      "seed": 1
+    },
+    {
+      "name": "demucs shifts=1 seed 2",
+      "kind": "demucs",
+      "shifts": 1,
+      "seed": 2
+    },
+    {
+      "name": "stemsep fp32 ov.25",
+      "overlap": 0.25
+    },
+    {
+      "name": "stemsep fp32 ov.10",
+      "overlap": 0.1
+    },
+    {
+      "name": "stemsep fp32 ov.05",
+      "overlap": 0.05
+    },
+    {
+      "name": "stemsep fp16 ov.10",
+      "overlap": 0.1,
+      "precision": "fp16"
+    },
+    {
+      "name": "stemsep bf16 ov.10",
+      "overlap": 0.1,
+      "precision": "bf16"
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 0.1s",
+      "overlap": 0.25,
+      "pad": 4410
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 0.2s",
+      "overlap": 0.25,
+      "pad": 8820
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 0.3s",
+      "overlap": 0.25,
+      "pad": 13230
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 0.4s",
+      "overlap": 0.25,
+      "pad": 17640
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 0.5s",
+      "overlap": 0.25,
+      "pad": 22050
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 1.5s",
+      "overlap": 0.25,
+      "pad": 66150
+    },
+    {
+      "name": "stemsep fp32 ov.25 delay 3.0s",
+      "overlap": 0.25,
+      "pad": 132300
+    },
+    {
+      "name": "demucs shifts=0 delay 1.5s",
+      "kind": "demucs",
+      "shifts": 0,
+      "pad": 66150
+    },
+    {
+      "name": "demucs shifts=0 delay 3.0s",
+      "kind": "demucs",
+      "shifts": 0,
+      "pad": 132300
+    },
+    {
+      "name": "stemsep fp32 ov.25 demucs stride",
+      "overlap": 0.25,
+      "grid": "demucs"
+    }
+  ],
+  "tracks": [
+    {
+      "name": "musdb18-7 test, concatenated",
+      "duration_s": 244.92408163265307,
+      "results": {
+        "demucs shifts=0": {
+          "stems": {
+            "drums": {
+              "sdr": 8.715211504730414,
+              "chunked_sdr": 9.501860026829117
+            },
+            "bass": {
+              "sdr": 6.070060975555123,
+              "chunked_sdr": 8.068366734095909
+            },
+            "other": {
+              "sdr": 4.896180081759543,
+              "chunked_sdr": 5.249672889656292
+            },
+            "vocals": {
+              "sdr": 8.67952526866788,
+              "chunked_sdr": 8.85134243037136
+            }
+          },
+          "mean": {
+            "sdr": 7.09024445767824,
+            "chunked_sdr": 7.917810520238169
+          },
+          "seconds": 5.008
+        },
+        "demucs shifts=1 seed 0": {
+          "stems": {
+            "drums": {
+              "sdr": 8.788778745009653,
+              "chunked_sdr": 9.54429398868815
+            },
+            "bass": {
+              "sdr": 6.099428331625352,
+              "chunked_sdr": 7.968370752722434
+            },
+            "other": {
+              "sdr": 4.908914396891222,
+              "chunked_sdr": 5.240659028676597
+            },
+            "vocals": {
+              "sdr": 8.642124216815436,
+              "chunked_sdr": 8.859426177711264
+            }
+          },
+          "mean": {
+            "sdr": 7.109811422585416,
+            "chunked_sdr": 7.90318748694961
+          },
+          "delay_samples": 9427,
+          "seconds": 5.015,
+          "vs_demucs_s0": 19.394369255832395
+        },
+        "demucs shifts=1 seed 1": {
+          "stems": {
+            "drums": {
+              "sdr": 8.655534496695722,
+              "chunked_sdr": 9.457492854710171
+            },
+            "bass": {
+              "sdr": 6.155171308781632,
+              "chunked_sdr": 8.278002077149026
+            },
+            "other": {
+              "sdr": 4.934135333452421,
+              "chunked_sdr": 5.277083846389481
+            },
+            "vocals": {
+              "sdr": 8.678082201942413,
+              "chunked_sdr": 8.834885082948876
+            }
+          },
+          "mean": {
+            "sdr": 7.105730835218047,
+            "chunked_sdr": 7.961865965299388
+          },
+          "delay_samples": 7994,
+          "seconds": 5.014,
+          "vs_demucs_s0": 20.05383597445239
+        },
+        "demucs shifts=1 seed 2": {
+          "stems": {
+            "drums": {
+              "sdr": 8.701927283084759,
+              "chunked_sdr": 9.500858159607613
+            },
+            "bass": {
+              "sdr": 6.083972844169937,
+              "chunked_sdr": 8.127531458139464
+            },
+            "other": {
+              "sdr": 4.91337699320333,
+              "chunked_sdr": 5.251524972197174
+            },
+            "vocals": {
+              "sdr": 8.668714279495845,
+              "chunked_sdr": 8.801649404440404
+            }
+          },
+          "mean": {
+            "sdr": 7.091997849988467,
+            "chunked_sdr": 7.920390998596163
+          },
+          "delay_samples": 7355,
+          "seconds": 5.008,
+          "vs_demucs_s0": 19.497310587106046
+        },
+        "stemsep fp32 ov.25": {
+          "stems": {
+            "drums": {
+              "sdr": 8.354732536267747,
+              "chunked_sdr": 9.458839559102273
+            },
+            "bass": {
+              "sdr": 5.876795065885979,
+              "chunked_sdr": 8.109325141502993
+            },
+            "other": {
+              "sdr": 4.921193118932998,
+              "chunked_sdr": 5.290956286414926
+            },
+            "vocals": {
+              "sdr": 8.59696806237374,
+              "chunked_sdr": 8.892631072663246
+            }
+          },
+          "mean": {
+            "sdr": 6.937422195865116,
+            "chunked_sdr": 7.937938014920859
+          },
+          "seconds": 4.695,
+          "vs_demucs_s0": 16.659874141256477
+        },
+        "stemsep fp32 ov.10": {
+          "stems": {
+            "drums": {
+              "sdr": 8.434864116051775,
+              "chunked_sdr": 9.344340601348172
+            },
+            "bass": {
+              "sdr": 5.876988712729194,
+              "chunked_sdr": 7.7845754332223045
+            },
+            "other": {
+              "sdr": 4.813579818907055,
+              "chunked_sdr": 5.161117635317909
+            },
+            "vocals": {
+              "sdr": 8.554941129084794,
+              "chunked_sdr": 8.74401385146108
+            }
+          },
+          "mean": {
+            "sdr": 6.9200934441932045,
+            "chunked_sdr": 7.758511880337367
+          },
+          "seconds": 3.933,
+          "vs_demucs_s0": 16.65353458095975
+        },
+        "stemsep fp32 ov.05": {
+          "stems": {
+            "drums": {
+              "sdr": 8.272216678514368,
+              "chunked_sdr": 9.292816454269753
+            },
+            "bass": {
+              "sdr": 5.864396570981324,
+              "chunked_sdr": 7.809579595103868
+            },
+            "other": {
+              "sdr": 4.832255139380305,
+              "chunked_sdr": 5.152836565402524
+            },
+            "vocals": {
+              "sdr": 8.452759573830784,
+              "chunked_sdr": 8.631647488124923
+            }
+          },
+          "mean": {
+            "sdr": 6.855406990676695,
+            "chunked_sdr": 7.721720025725267
+          },
+          "seconds": 3.845,
+          "vs_demucs_s0": 15.445040727029198
+        },
+        "stemsep fp16 ov.10": {
+          "stems": {
+            "drums": {
+              "sdr": 8.434669073754655,
+              "chunked_sdr": 9.344530540262275
+            },
+            "bass": {
+              "sdr": 5.878926834155918,
+              "chunked_sdr": 7.785221141715425
+            },
+            "other": {
+              "sdr": 4.814223016965496,
+              "chunked_sdr": 5.161811856314733
+            },
+            "vocals": {
+              "sdr": 8.554885497453233,
+              "chunked_sdr": 8.74240450189193
+            }
+          },
+          "mean": {
+            "sdr": 6.920676105582325,
+            "chunked_sdr": 7.7584920100460915
+          },
+          "seconds": 3.0,
+          "vs_demucs_s0": 16.652368428320436
+        },
+        "stemsep bf16 ov.10": {
+          "stems": {
+            "drums": {
+              "sdr": 8.446855320311823,
+              "chunked_sdr": 9.325225407130631
+            },
+            "bass": {
+              "sdr": 5.912027962244279,
+              "chunked_sdr": 7.789047279189164
+            },
+            "other": {
+              "sdr": 4.820657727754268,
+              "chunked_sdr": 5.228032267087561
+            },
+            "vocals": {
+              "sdr": 8.552774866410099,
+              "chunked_sdr": 8.760277638467212
+            }
+          },
+          "mean": {
+            "sdr": 6.933078969180118,
+            "chunked_sdr": 7.775645647968641
+          },
+          "seconds": 3.081,
+          "vs_demucs_s0": 16.702680079545697
+        },
+        "stemsep fp32 ov.25 delay 0.1s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.429480404099326,
+              "chunked_sdr": 9.409198872840236
+            },
+            "bass": {
+              "sdr": 5.8268299086291115,
+              "chunked_sdr": 8.208746278836568
+            },
+            "other": {
+              "sdr": 4.934182903785659,
+              "chunked_sdr": 5.353057551660707
+            },
+            "vocals": {
+              "sdr": 8.583165649512361,
+              "chunked_sdr": 8.834543560907207
+            }
+          },
+          "mean": {
+            "sdr": 6.943414716506615,
+            "chunked_sdr": 7.9513865660611796
+          },
+          "delay_samples": 4410,
+          "seconds": 4.697,
+          "vs_demucs_s0": 16.52963470783797
+        },
+        "stemsep fp32 ov.25 delay 0.2s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.388530589501661,
+              "chunked_sdr": 9.501637060240554
+            },
+            "bass": {
+              "sdr": 5.855615642894618,
+              "chunked_sdr": 8.024459821386362
+            },
+            "other": {
+              "sdr": 4.9345863352702395,
+              "chunked_sdr": 5.395162825135887
+            },
+            "vocals": {
+              "sdr": 8.59902399398883,
+              "chunked_sdr": 8.843212460490424
+            }
+          },
+          "mean": {
+            "sdr": 6.944439140413837,
+            "chunked_sdr": 7.941118041813307
+          },
+          "delay_samples": 8820,
+          "seconds": 4.709,
+          "vs_demucs_s0": 16.545999245018013
+        },
+        "stemsep fp32 ov.25 delay 0.3s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.346160555999209,
+              "chunked_sdr": 9.412137962192329
+            },
+            "bass": {
+              "sdr": 5.888826082647466,
+              "chunked_sdr": 8.212997173545157
+            },
+            "other": {
+              "sdr": 4.930012303101429,
+              "chunked_sdr": 5.3948692663353945
+            },
+            "vocals": {
+              "sdr": 8.596410129907886,
+              "chunked_sdr": 8.854728804654604
+            }
+          },
+          "mean": {
+            "sdr": 6.9403522679139975,
+            "chunked_sdr": 7.968683301681871
+          },
+          "delay_samples": 13230,
+          "seconds": 4.702,
+          "vs_demucs_s0": 16.36474468428565
+        },
+        "stemsep fp32 ov.25 delay 0.4s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.32894193730787,
+              "chunked_sdr": 9.493692474451741
+            },
+            "bass": {
+              "sdr": 5.89719972337384,
+              "chunked_sdr": 8.223988835180695
+            },
+            "other": {
+              "sdr": 4.919329244287651,
+              "chunked_sdr": 5.39121916823775
+            },
+            "vocals": {
+              "sdr": 8.594345090531101,
+              "chunked_sdr": 8.83774071041568
+            }
+          },
+          "mean": {
+            "sdr": 6.934953998875116,
+            "chunked_sdr": 7.986660297071467
+          },
+          "delay_samples": 17640,
+          "seconds": 4.719,
+          "vs_demucs_s0": 16.296908024549136
+        },
+        "stemsep fp32 ov.25 delay 0.5s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.308100717211609,
+              "chunked_sdr": 9.465029001350567
+            },
+            "bass": {
+              "sdr": 5.864690848848367,
+              "chunked_sdr": 8.173921469080165
+            },
+            "other": {
+              "sdr": 4.922391982080764,
+              "chunked_sdr": 5.3650865059827195
+            },
+            "vocals": {
+              "sdr": 8.591315193074644,
+              "chunked_sdr": 8.811813727157908
+            }
+          },
+          "mean": {
+            "sdr": 6.921624685303845,
+            "chunked_sdr": 7.95396267589284
+          },
+          "delay_samples": 22050,
+          "seconds": 4.708,
+          "vs_demucs_s0": 16.326837915556876
+        },
+        "stemsep fp32 ov.25 delay 1.5s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.244246275322068,
+              "chunked_sdr": 9.465795889996519
+            },
+            "bass": {
+              "sdr": 5.909136017929722,
+              "chunked_sdr": 8.15726485717956
+            },
+            "other": {
+              "sdr": 4.916957058651253,
+              "chunked_sdr": 5.290979321208041
+            },
+            "vocals": {
+              "sdr": 8.57809383881462,
+              "chunked_sdr": 8.664949577139417
+            }
+          },
+          "mean": {
+            "sdr": 6.912108297679416,
+            "chunked_sdr": 7.894747411380885
+          },
+          "delay_samples": 66150,
+          "seconds": 4.723,
+          "vs_demucs_s0": 15.75242358517943
+        },
+        "stemsep fp32 ov.25 delay 3.0s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.54741729614878,
+              "chunked_sdr": 9.373000972304425
+            },
+            "bass": {
+              "sdr": 6.07481644363359,
+              "chunked_sdr": 8.103301303900448
+            },
+            "other": {
+              "sdr": 4.894581382638828,
+              "chunked_sdr": 5.357754366465354
+            },
+            "vocals": {
+              "sdr": 8.578692569464842,
+              "chunked_sdr": 8.783619231637232
+            }
+          },
+          "mean": {
+            "sdr": 7.02387692297151,
+            "chunked_sdr": 7.904418968576865
+          },
+          "delay_samples": 132300,
+          "seconds": 4.797,
+          "vs_demucs_s0": 17.08637179968132
+        },
+        "demucs shifts=0 delay 1.5s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.541433062177555,
+              "chunked_sdr": 9.50301433970511
+            },
+            "bass": {
+              "sdr": 6.207457694115945,
+              "chunked_sdr": 8.346390886933154
+            },
+            "other": {
+              "sdr": 4.896309335799984,
+              "chunked_sdr": 5.301303323697879
+            },
+            "vocals": {
+              "sdr": 8.586056344129748,
+              "chunked_sdr": 8.745782779383088
+            }
+          },
+          "mean": {
+            "sdr": 7.0578141090558075,
+            "chunked_sdr": 7.974122832429808
+          },
+          "delay_samples": 66150,
+          "seconds": 5.131,
+          "vs_demucs_s0": 16.733528256387494
+        },
+        "demucs shifts=0 delay 3.0s": {
+          "stems": {
+            "drums": {
+              "sdr": 8.310409734269484,
+              "chunked_sdr": 9.379755380831597
+            },
+            "bass": {
+              "sdr": 6.027203160117761,
+              "chunked_sdr": 8.092784811475877
+            },
+            "other": {
+              "sdr": 4.938815820517016,
+              "chunked_sdr": 5.413314446698606
+            },
+            "vocals": {
+              "sdr": 8.570530003032694,
+              "chunked_sdr": 8.724772552111876
+            }
+          },
+          "mean": {
+            "sdr": 6.961739679484239,
+            "chunked_sdr": 7.902656797779489
+          },
+          "delay_samples": 132300,
+          "seconds": 5.135,
+          "vs_demucs_s0": 15.780605993190326
+        },
+        "stemsep fp32 ov.25 demucs stride": {
+          "stems": {
+            "drums": {
+              "sdr": 8.721756300810279,
+              "chunked_sdr": 9.502292856627161
+            },
+            "bass": {
+              "sdr": 6.113792049742544,
+              "chunked_sdr": 8.068793760573891
+            },
+            "other": {
+              "sdr": 4.917780241901913,
+              "chunked_sdr": 5.301328853909002
+            },
+            "vocals": {
+              "sdr": 8.677448249309652,
+              "chunked_sdr": 8.908797823542471
+            }
+          },
+          "mean": {
+            "sdr": 7.107694210441097,
+            "chunked_sdr": 7.945303323663132
+          },
+          "seconds": 4.693,
+          "vs_demucs_s0": 30.808438310947636
+        }
+      }
+    }
+  ],
+  "wall_s": 119.2,
+  "summary": {
+    "configs": {
+      "demucs shifts=0": {
+        "sdr": {
+          "n": 1,
+          "median": 7.09024445767824,
+          "mean": 7.09024445767824,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.917810520238169,
+          "mean": 7.917810520238169,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.715211504730414,
+          "bass": 6.070060975555123,
+          "other": 4.896180081759543,
+          "vocals": 8.67952526866788
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.012268911585736397,
+          "mean": -0.012268911585736397,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.010670963376885112,
+          "mean": -0.010670963376885112,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": 0.0,
+          "mean": 0.0,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": NaN,
+        "seconds": 5.008,
+        "errors": []
+      },
+      "demucs shifts=1 seed 0": {
+        "sdr": {
+          "n": 1,
+          "median": 7.109811422585416,
+          "mean": 7.109811422585416,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.90318748694961,
+          "mean": 7.90318748694961,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.788778745009653,
+          "bass": 6.099428331625352,
+          "other": 4.908914396891222,
+          "vocals": 8.642124216815436
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": 0.007298053321439291,
+          "mean": 0.007298053321439291,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.025293996665443963,
+          "mean": -0.025293996665443963,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": 0.019566964907175688,
+          "mean": 0.019566964907175688,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 19.394369255832395,
+        "seconds": 5.015,
+        "errors": []
+      },
+      "demucs shifts=1 seed 1": {
+        "sdr": {
+          "n": 1,
+          "median": 7.105730835218047,
+          "mean": 7.105730835218047,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.961865965299388,
+          "mean": 7.961865965299388,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.655534496695722,
+          "bass": 6.155171308781632,
+          "other": 4.934135333452421,
+          "vocals": 8.678082201942413
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": 0.003217465954070242,
+          "mean": 0.003217465954070242,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.033384481684334055,
+          "mean": 0.033384481684334055,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": 0.01548637753980664,
+          "mean": 0.01548637753980664,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 20.05383597445239,
+        "seconds": 5.014,
+        "errors": []
+      },
+      "demucs shifts=1 seed 2": {
+        "sdr": {
+          "n": 1,
+          "median": 7.091997849988467,
+          "mean": 7.091997849988467,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.920390998596163,
+          "mean": 7.920390998596163,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.701927283084759,
+          "bass": 6.083972844169937,
+          "other": 4.91337699320333,
+          "vocals": 8.668714279495845
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.010515519275509533,
+          "mean": -0.010515519275509533,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.00809048501889098,
+          "mean": -0.00809048501889098,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": 0.0017533923102268645,
+          "mean": 0.0017533923102268645,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 19.497310587106046,
+        "seconds": 5.008,
+        "errors": []
+      },
+      "stemsep fp32 ov.25": {
+        "sdr": {
+          "n": 1,
+          "median": 6.937422195865116,
+          "mean": 6.937422195865116,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.937938014920859,
+          "mean": 7.937938014920859,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.354732536267747,
+          "bass": 5.876795065885979,
+          "other": 4.921193118932998,
+          "vocals": 8.59696806237374
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.16509117339886092,
+          "mean": -0.16509117339886092,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.009456531305804816,
+          "mean": 0.009456531305804816,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.15282226181312453,
+          "mean": -0.15282226181312453,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.659874141256477,
+        "seconds": 4.695,
+        "errors": []
+      },
+      "stemsep fp32 ov.10": {
+        "sdr": {
+          "n": 1,
+          "median": 6.9200934441932045,
+          "mean": 6.9200934441932045,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.758511880337367,
+          "mean": 7.758511880337367,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.434864116051775,
+          "bass": 5.876988712729194,
+          "other": 4.813579818907055,
+          "vocals": 8.554941129084794
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.18241992507077232,
+          "mean": -0.18241992507077232,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.1699696032776874,
+          "mean": -0.1699696032776874,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.17015101348503592,
+          "mean": -0.17015101348503592,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.65353458095975,
+        "seconds": 3.933,
+        "errors": []
+      },
+      "stemsep fp32 ov.05": {
+        "sdr": {
+          "n": 1,
+          "median": 6.855406990676695,
+          "mean": 6.855406990676695,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.721720025725267,
+          "mean": 7.721720025725267,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.272216678514368,
+          "bass": 5.864396570981324,
+          "other": 4.832255139380305,
+          "vocals": 8.452759573830784
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.24710637858728202,
+          "mean": -0.24710637858728202,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.20676145788978761,
+          "mean": -0.20676145788978761,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.23483746700154562,
+          "mean": -0.23483746700154562,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 15.445040727029198,
+        "seconds": 3.845,
+        "errors": []
+      },
+      "stemsep fp16 ov.10": {
+        "sdr": {
+          "n": 1,
+          "median": 6.920676105582325,
+          "mean": 6.920676105582325,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.7584920100460915,
+          "mean": 7.7584920100460915,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.434669073754655,
+          "bass": 5.878926834155918,
+          "other": 4.814223016965496,
+          "vocals": 8.554885497453233
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.18183726368165143,
+          "mean": -0.18183726368165143,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.16998947356896288,
+          "mean": -0.16998947356896288,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.16956835209591503,
+          "mean": -0.16956835209591503,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.652368428320436,
+        "seconds": 3.0,
+        "errors": []
+      },
+      "stemsep bf16 ov.10": {
+        "sdr": {
+          "n": 1,
+          "median": 6.933078969180118,
+          "mean": 6.933078969180118,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.775645647968641,
+          "mean": 7.775645647968641,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.446855320311823,
+          "bass": 5.912027962244279,
+          "other": 4.820657727754268,
+          "vocals": 8.552774866410099
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.16943440008385924,
+          "mean": -0.16943440008385924,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.152835835646413,
+          "mean": -0.152835835646413,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.15716548849812284,
+          "mean": -0.15716548849812284,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.702680079545697,
+        "seconds": 3.081,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 0.1s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.943414716506615,
+          "mean": 6.943414716506615,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.9513865660611796,
+          "mean": 7.9513865660611796,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.429480404099326,
+          "bass": 5.8268299086291115,
+          "other": 4.934182903785659,
+          "vocals": 8.583165649512361
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.15909865275736212,
+          "mean": -0.15909865275736212,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.022905082446125213,
+          "mean": 0.022905082446125213,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.14682974117162573,
+          "mean": -0.14682974117162573,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.52963470783797,
+        "seconds": 4.697,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 0.2s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.944439140413837,
+          "mean": 6.944439140413837,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.941118041813307,
+          "mean": 7.941118041813307,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.388530589501661,
+          "bass": 5.855615642894618,
+          "other": 4.9345863352702395,
+          "vocals": 8.59902399398883
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.15807422885013978,
+          "mean": -0.15807422885013978,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.012636558198252601,
+          "mean": 0.012636558198252601,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.14580531726440338,
+          "mean": -0.14580531726440338,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.545999245018013,
+        "seconds": 4.709,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 0.3s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.9403522679139975,
+          "mean": 6.9403522679139975,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.968683301681871,
+          "mean": 7.968683301681871,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.346160555999209,
+          "bass": 5.888826082647466,
+          "other": 4.930012303101429,
+          "vocals": 8.596410129907886
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.1621611013499793,
+          "mean": -0.1621611013499793,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.040201818066816664,
+          "mean": 0.040201818066816664,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.1498921897642429,
+          "mean": -0.1498921897642429,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.36474468428565,
+        "seconds": 4.702,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 0.4s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.934953998875116,
+          "mean": 6.934953998875116,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.986660297071467,
+          "mean": 7.986660297071467,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.32894193730787,
+          "bass": 5.89719972337384,
+          "other": 4.919329244287651,
+          "vocals": 8.594345090531101
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.1675593703888607,
+          "mean": -0.1675593703888607,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.05817881345641229,
+          "mean": 0.05817881345641229,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.1552904588031243,
+          "mean": -0.1552904588031243,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.296908024549136,
+        "seconds": 4.719,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 0.5s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.921624685303845,
+          "mean": 6.921624685303845,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.95396267589284,
+          "mean": 7.95396267589284,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.308100717211609,
+          "bass": 5.864690848848367,
+          "other": 4.922391982080764,
+          "vocals": 8.591315193074644
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.18088868396013158,
+          "mean": -0.18088868396013158,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.02548119227778578,
+          "mean": 0.02548119227778578,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.16861977237439518,
+          "mean": -0.16861977237439518,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.326837915556876,
+        "seconds": 4.708,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 1.5s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.912108297679416,
+          "mean": 6.912108297679416,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.894747411380885,
+          "mean": 7.894747411380885,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.244246275322068,
+          "bass": 5.909136017929722,
+          "other": 4.916957058651253,
+          "vocals": 8.57809383881462
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.19040507158456066,
+          "mean": -0.19040507158456066,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.03373407223416969,
+          "mean": -0.03373407223416969,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.17813615999882426,
+          "mean": -0.17813615999882426,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 15.75242358517943,
+        "seconds": 4.723,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 delay 3.0s": {
+        "sdr": {
+          "n": 1,
+          "median": 7.02387692297151,
+          "mean": 7.02387692297151,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.904418968576865,
+          "mean": 7.904418968576865,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.54741729614878,
+          "bass": 6.07481644363359,
+          "other": 4.894581382638828,
+          "vocals": 8.578692569464842
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.07863644629246647,
+          "mean": -0.07863644629246647,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.02406251503818968,
+          "mean": -0.02406251503818968,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.06636753470673007,
+          "mean": -0.06636753470673007,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 17.08637179968132,
+        "seconds": 4.797,
+        "errors": []
+      },
+      "demucs shifts=0 delay 1.5s": {
+        "sdr": {
+          "n": 1,
+          "median": 7.0578141090558075,
+          "mean": 7.0578141090558075,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.974122832429808,
+          "mean": 7.974122832429808,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.541433062177555,
+          "bass": 6.207457694115945,
+          "other": 4.896309335799984,
+          "vocals": 8.586056344129748
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.04469926020816928,
+          "mean": -0.04469926020816928,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.04564134881475379,
+          "mean": 0.04564134881475379,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.03243034862243288,
+          "mean": -0.03243034862243288,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 16.733528256387494,
+        "seconds": 5.131,
+        "errors": []
+      },
+      "demucs shifts=0 delay 3.0s": {
+        "sdr": {
+          "n": 1,
+          "median": 6.961739679484239,
+          "mean": 6.961739679484239,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.902656797779489,
+          "mean": 7.902656797779489,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.310409734269484,
+          "bass": 6.027203160117761,
+          "other": 4.938815820517016,
+          "vocals": 8.570530003032694
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": -0.1407736897797376,
+          "mean": -0.1407736897797376,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": -0.025824685835565298,
+          "mean": -0.025824685835565298,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": -0.1285047781940012,
+          "mean": -0.1285047781940012,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 15.780605993190326,
+        "seconds": 5.135,
+        "errors": []
+      },
+      "stemsep fp32 ov.25 demucs stride": {
+        "sdr": {
+          "n": 1,
+          "median": 7.107694210441097,
+          "mean": 7.107694210441097,
+          "se": NaN
+        },
+        "chunked_sdr": {
+          "n": 1,
+          "median": 7.945303323663132,
+          "mean": 7.945303323663132,
+          "se": NaN
+        },
+        "stems": {
+          "drums": 8.721756300810279,
+          "bass": 6.113792049742544,
+          "other": 4.917780241901913,
+          "vocals": 8.677448249309652
+        },
+        "minus_prod": {
+          "n": 1,
+          "median": 0.0051808411771201435,
+          "mean": 0.0051808411771201435,
+          "se": NaN
+        },
+        "minus_prod_csdr": {
+          "n": 1,
+          "median": 0.01682184004807752,
+          "mean": 0.01682184004807752,
+          "se": NaN
+        },
+        "minus_s0": {
+          "n": 1,
+          "median": 0.01744975276285654,
+          "mean": 0.01744975276285654,
+          "se": NaN
+        },
+        "vs_demucs_s0_median": 30.808438310947636,
+        "seconds": 4.693,
+        "errors": []
+      }
+    },
+    "grid": {
+      "stemsep spacing": {
+        "configs": [
+          "stemsep fp32 ov.25",
+          "stemsep fp32 ov.25 delay 0.1s",
+          "stemsep fp32 ov.25 delay 0.2s",
+          "stemsep fp32 ov.25 delay 0.3s",
+          "stemsep fp32 ov.25 delay 0.4s",
+          "stemsep fp32 ov.25 delay 0.5s",
+          "stemsep fp32 ov.25 delay 1.5s",
+          "stemsep fp32 ov.25 delay 3.0s"
+        ],
+        "per_track": [
+          {
+            "name": "musdb18-7 test, concatenated",
+            "mean": 6.944774028191182,
+            "std": 0.03387414573505367,
+            "range": 0.11176862529209419
+          }
+        ],
+        "mean_std": 0.03387414573505367,
+        "mean_range": 0.11176862529209419,
+        "mean": 6.944774028191182
+      },
+      "demucs spacing": {
+        "configs": [
+          "demucs shifts=0",
+          "demucs shifts=1 seed 0",
+          "demucs shifts=1 seed 1",
+          "demucs shifts=1 seed 2",
+          "stemsep fp32 ov.25 demucs stride",
+          "demucs shifts=0 delay 1.5s",
+          "demucs shifts=0 delay 3.0s"
+        ],
+        "per_track": [
+          {
+            "name": "musdb18-7 test, concatenated",
+            "mean": 7.075004652064473,
+            "std": 0.053024689320961015,
+            "range": 0.14807174310117688
+          }
+        ],
+        "mean_std": 0.053024689320961015,
+        "mean_range": 0.14807174310117688,
+        "mean": 7.075004652064473
+      }
+    }
+  }
+}
