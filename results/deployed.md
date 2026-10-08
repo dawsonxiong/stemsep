@@ -61,3 +61,16 @@ The bucket (`stem-player-audio`) is in ENAM. A10 containers, each in a fresh con
 | `region="us-east"` (1.75× price) | IAD | 0.25–0.35 | 0.55–0.64 |
 
 Pinning to `us` would save ~0.3–0.6 s a job on average, and trim the slow tail when Modal places a job in Europe or Asia, for 15% more per GPU-second, idle time included. stemplayer doesn't pin; it's a cost call.
+
+## Tried: fetching link songs on a CPU container
+
+Branch `dawson/fetch-on-cpu` in stemplayer moved yt-dlp downloads out of the GPU container into a 1-core CPU function (`region="us"`). It stored the song in R2 and handed it on, so the GPU could boot during the download, and a warm GPU wouldn't idle through it. The same SoundCloud track (~214 s) went through both versions, each with the GPU warm-up request sent first:
+
+| | cold job (s) | warm job (s) |
+|---|---|---|
+| GPU downloads (current) | 36.7, 18.0, 127.7 (snapshot retaken) | 18.2, 10.5, 9.8 |
+| CPU function downloads | 32.1, 33.2, 29.5, 22.3, 22.2, 20.8, 23.4, 28.8 | 17.1, 16.1, 15.7 |
+
+yt-dlp took 6–8 s in the 1-core container, against 1.3–2.7 s in the GPU container's four cores, and the extra container and R2 hop cost more again. A memory snapshot didn't shorten the CPU function's cold start (6.6–12.8 s to its first report). Not shipped.
+
+The same runs show the encoding tail depends on the song: 3.8–4.0 s after separation for this track, against ~1.4 s for the MUSDB test song.
