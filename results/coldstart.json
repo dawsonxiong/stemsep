@@ -1,0 +1,93 @@
+{
+  "gpu": "L4",
+  "NoSnapshot": {
+    "samples": [
+      {
+        "total_s": 19.48,
+        "until_ready_s": 8.8,
+        "enter_s": 4.151,
+        "first_call_s": 10.36
+      },
+      {
+        "total_s": 18.83,
+        "until_ready_s": 8.12,
+        "enter_s": 4.186,
+        "first_call_s": 10.401
+      },
+      {
+        "total_s": 14.02,
+        "until_ready_s": 6.03,
+        "enter_s": 3.425,
+        "first_call_s": 7.782
+      },
+      {
+        "total_s": 19.54,
+        "until_ready_s": 8.67,
+        "enter_s": 4.71,
+        "first_call_s": 10.713
+      }
+    ],
+    "median_total_s": 19.155,
+    "median_until_ready_s": 8.395
+  },
+  "CpuSnapshot": {
+    "samples": [
+      {
+        "total_s": 43.53,
+        "until_ready_s": 32.3,
+        "enter_s": 0.612,
+        "first_call_s": 11.077
+      },
+      {
+        "total_s": 13.78,
+        "until_ready_s": 3.16,
+        "enter_s": 0.361,
+        "first_call_s": 10.464
+      },
+      {
+        "total_s": 19.75,
+        "until_ready_s": 9.45,
+        "enter_s": 0.389,
+        "first_call_s": 10.263
+      },
+      {
+        "total_s": 14.04,
+        "until_ready_s": 3.6,
+        "enter_s": 0.285,
+        "first_call_s": 10.371
+      }
+    ],
+    "median_total_s": 16.895,
+    "median_until_ready_s": 6.5249999999999995
+  },
+  "GpuSnapshot": {
+    "samples": [
+      {
+        "total_s": 8.86,
+        "until_ready_s": 5.08,
+        "enter_s": 0.0,
+        "first_call_s": 3.689
+      },
+      {
+        "total_s": 8.47,
+        "until_ready_s": 4.93,
+        "enter_s": 0.0,
+        "first_call_s": 3.342
+      },
+      {
+        "total_s": 6.77,
+        "until_ready_s": 3.55,
+        "enter_s": 0.0,
+        "first_call_s": 3.112
+      },
+      {
+        "total_s": 7.8,
+        "until_ready_s": 4.54,
+        "enter_s": 0.0,
+        "first_call_s": 3.104
+      }
+    ],
+    "median_total_s": 8.135,
+    "median_until_ready_s": 4.734999999999999
+  }
+}

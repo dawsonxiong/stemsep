@@ -11,6 +11,7 @@ doesn't change what any chunk sees.
 from __future__ import annotations
 
 import math
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from typing import Callable, Literal, Sequence
 
@@ -40,9 +41,10 @@ class Config:
     # Pad the last batch up to batch_size, so a compiled or exported network
     # only ever sees one shape.
     static_batch: bool | None = None
-    # Let cuDNN time its convolution algorithms on the first batch and keep
-    # the fastest. Chunks are all one shape, so it only pays that once.
-    cudnn_benchmark: bool = True
+    # Let cuDNN time its convolution algorithms on the first batch. On an L4
+    # that added ~12 s to a fresh container's first song and saved ~2% after,
+    # so it's off unless containers live long or snapshot the GPU.
+    cudnn_benchmark: bool = False
 
     def __post_init__(self):
         if not 0 <= self.overlap < 1:
@@ -92,8 +94,11 @@ class Separator:
         self.samplerate: int = self.bag.samplerate
         self.audio_channels: int = self.bag.audio_channels
         self._cores: list = []
-        if self.config.cudnn_benchmark:
-            torch.backends.cudnn.benchmark = True
+        # Process-wide, so set either way rather than inherit a neighbour's.
+        torch.backends.cudnn.benchmark = self.config.cudnn_benchmark
+        # Also process-wide. Set here, once, rather than set and restored per
+        # call, which races when separations run concurrently in one process.
+        torch.set_float32_matmul_precision(self._matmul_precision())
         self.to(self.device)
 
     # ---- setup -----------------------------------------------------------
@@ -122,7 +127,8 @@ class Separator:
     def _autocast(self):
         cfg = self.config
         if cfg.backend == "onnx" or cfg.precision not in ("fp16", "bf16"):
-            return torch.autocast(self.device.type, enabled=False)
+            # Not autocast(enabled=False): older torch rejects device type "mps".
+            return nullcontext()
         dtype = torch.float16 if cfg.precision == "fp16" else torch.bfloat16
         return torch.autocast(self.device.type, dtype=dtype)
 
@@ -148,53 +154,53 @@ class Separator:
         htdemucs_ft. `progress` is called with the fraction of chunks done.
         """
         prof = profiler or NullProfiler()
-        wanted = list(stems or self.sources)
+        # `stems or ...` would turn an empty list into every stem.
+        wanted = list(self.sources if stems is None else stems)
+        if not wanted:
+            raise ValueError("no stems requested")
         unknown = set(wanted) - set(self.sources)
         if unknown:
             raise ValueError(f"unknown stems {sorted(unknown)}")
         if wav.dim() != 2 or wav.shape[0] != self.audio_channels:
             raise ValueError(f"expected [{self.audio_channels}, length], got {list(wav.shape)}")
+        if wav.shape[-1] == 0:
+            raise ValueError("empty audio")
 
-        previous = torch.get_float32_matmul_precision()
-        torch.set_float32_matmul_precision(self._matmul_precision())
-        try:
-            with prof.stage("to_device"):
-                wav = wav.to(self.device, torch.float32, non_blocking=True)
-                # Normalize the song as a whole, as demucs's CLI does.
-                ref = wav.mean(0)
-                mean, std = ref.mean(), ref.std()
-                wav = (wav - mean) / (std + 1e-8)
+        with prof.stage("to_device"):
+            wav = wav.to(self.device, torch.float32, non_blocking=True)
+            # Normalize the song as a whole, as demucs's CLI does. It divides
+            # by the std alone, which is 0 for silence or channels that
+            # cancel (and NaN for one sample), and every stem comes out NaN.
+            # Undoing with the same `scale` keeps the round trip exact.
+            ref = wav.mean(0)
+            mean = ref.mean()
+            scale = (ref.std() if ref.numel() > 1 else ref.new_zeros(())) + 1e-8
+            wav = (wav - mean) / scale
 
-            plan = self._plan(wanted)
-            total_chunks = sum(
-                len(self._offsets(wav.shape[-1], self.bag.models[i])) for i, _ in plan
-            )
-            done = 0
+        plan = self._plan(wanted)
+        total_chunks = sum(len(self._offsets(wav.shape[-1], self.bag.models[i])) for i, _ in plan)
+        done = 0
 
-            def tick(n: int) -> None:
-                nonlocal done
-                done += n
-                if progress:
-                    progress(done / total_chunks)
+        def tick(n: int) -> None:
+            nonlocal done
+            done += n
+            if progress:
+                progress(done / total_chunks)
 
-            estimate = None
-            totals = torch.zeros(len(self.sources), device=self.device)
-            for index, weights in plan:
-                out = self._separate_one(
-                    self.bag.models[index], self._cores[index], wav, prof, tick
-                )
-                w = torch.tensor(weights, device=self.device)
-                out *= w[:, None, None]
-                estimate = out if estimate is None else estimate + out
-                totals += w
-            assert estimate is not None
-            estimate /= totals.clamp_min(1e-8)[:, None, None]
+        estimate = None
+        totals = torch.zeros(len(self.sources), device=self.device)
+        for index, weights in plan:
+            out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)
+            w = torch.tensor(weights, device=self.device)
+            out *= w[:, None, None]
+            estimate = out if estimate is None else estimate + out
+            totals += w
+        assert estimate is not None
+        estimate /= totals.clamp_min(1e-8)[:, None, None]
 
-            with prof.stage("to_host"):
-                estimate = (estimate * std + mean).cpu()
-            return {name: estimate[self.sources.index(name)] for name in wanted}
-        finally:
-            torch.set_float32_matmul_precision(previous)
+        with prof.stage("to_host"):
+            estimate = (estimate * scale + mean).cpu()
+        return {name: estimate[self.sources.index(name)] for name in wanted}
 
     def _plan(self, wanted: list[str]) -> list[tuple[int, list[float]]]:
         """(sub-model index, weights) for each sub-model that adds to

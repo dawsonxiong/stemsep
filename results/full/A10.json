@@ -1,0 +1,670 @@
+{
+  "env": {
+    "gpu": "A10",
+    "device": "NVIDIA A10",
+    "vram_gib": 22.1,
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "arch_list": [
+      "sm_75",
+      "sm_80",
+      "sm_86",
+      "sm_90",
+      "sm_100",
+      "sm_120"
+    ],
+    "audio_seconds": 244.92
+  },
+  "rows": [
+    {
+      "name": "demucs apply_model (production)",
+      "config": {},
+      "load_s": 0.84,
+      "first_call_s": 1.45,
+      "separate_s": 5.468,
+      "separate_runs_s": [
+        5.458,
+        5.468,
+        5.475
+      ],
+      "realtime_x": 44.8,
+      "peak_alloc_gib": 1.06,
+      "peak_reserved_gib": 1.93,
+      "stages_s": {},
+      "inference_cost_per_audio_min": 0.000528,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.760296784830992,
+            "chunked_sdr": 9.457215315142687
+          },
+          "bass": {
+            "sdr": 6.167959567333455,
+            "chunked_sdr": 8.275259864198873
+          },
+          "other": {
+            "sdr": 4.906188424183431,
+            "chunked_sdr": 5.237027326176992
+          },
+          "vocals": {
+            "sdr": 8.62136119027615,
+            "chunked_sdr": 8.841014004935253
+          }
+        },
+        "mean": {
+          "sdr": 7.113951491656007,
+          "chunked_sdr": 7.952629127613451
+        }
+      }
+    },
+    {
+      "name": "eager fp32 ov.25 b1",
+      "config": {
+        "overlap": 0.25,
+        "batch_size": 1
+      },
+      "load_s": 0.44,
+      "first_call_s": 0.49,
+      "separate_s": 5.178,
+      "separate_runs_s": [
+        5.173,
+        5.178,
+        5.186
+      ],
+      "realtime_x": 47.3,
+      "peak_alloc_gib": 1.26,
+      "peak_reserved_gib": 2.21,
+      "stages_s": {
+        "to_device": 0.011,
+        "chunk": 0.0006,
+        "stft": 0.0313,
+        "network": 4.9099,
+        "istft": 0.1042,
+        "overlap_add": 0.0072,
+        "to_host": 0.1047
+      },
+      "inference_cost_per_audio_min": 0.0005,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.35441960998253,
+            "chunked_sdr": 9.458585050500389
+          },
+          "bass": {
+            "sdr": 5.8765694516947935,
+            "chunked_sdr": 8.109845833709096
+          },
+          "other": {
+            "sdr": 4.921110160591719,
+            "chunked_sdr": 5.291322685608591
+          },
+          "vocals": {
+            "sdr": 8.597022934763345,
+            "chunked_sdr": 8.89264513233148
+          }
+        },
+        "mean": {
+          "sdr": 6.937280539258097,
+          "chunked_sdr": 7.938099675537389
+        }
+      }
+    },
+    {
+      "name": "eager fp32 ov.25 b8",
+      "config": {
+        "overlap": 0.25,
+        "batch_size": 8
+      },
+      "load_s": 0.33,
+      "first_call_s": 5.71,
+      "separate_s": 3.06,
+      "separate_runs_s": [
+        8.408,
+        3.06,
+        3.055
+      ],
+      "realtime_x": 80.0,
+      "peak_alloc_gib": 4.09,
+      "peak_reserved_gib": 5.5,
+      "stages_s": {
+        "to_device": 0.0112,
+        "chunk": 0.0006,
+        "stft": 0.0202,
+        "network": 2.8202,
+        "istft": 0.0963,
+        "overlap_add": 0.0062,
+        "to_host": 0.0987
+      },
+      "inference_cost_per_audio_min": 0.000295,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.354507094560958,
+            "chunked_sdr": 9.458698676859484
+          },
+          "bass": {
+            "sdr": 5.876515799706974,
+            "chunked_sdr": 8.10980358306643
+          },
+          "other": {
+            "sdr": 4.921019164216219,
+            "chunked_sdr": 5.29163530835425
+          },
+          "vocals": {
+            "sdr": 8.596965518117694,
+            "chunked_sdr": 8.89226080605011
+          }
+        },
+        "mean": {
+          "sdr": 6.93725189415046,
+          "chunked_sdr": 7.938099593582569
+        }
+      },
+      "sdr_vs_fp32": 129.61
+    },
+    {
+      "name": "eager fp32 ov.10 b8",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 8
+      },
+      "load_s": 0.35,
+      "first_call_s": 2.55,
+      "separate_s": 2.56,
+      "separate_runs_s": [
+        2.563,
+        2.56,
+        2.558
+      ],
+      "realtime_x": 95.7,
+      "peak_alloc_gib": 4.07,
+      "peak_reserved_gib": 5.74,
+      "stages_s": {
+        "to_device": 0.0108,
+        "chunk": 0.0005,
+        "stft": 0.0169,
+        "network": 2.3422,
+        "istft": 0.0809,
+        "overlap_add": 0.0052,
+        "to_host": 0.0966
+      },
+      "inference_cost_per_audio_min": 0.000247,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.434849806057095,
+            "chunked_sdr": 9.344225052206053
+          },
+          "bass": {
+            "sdr": 5.876352559409867,
+            "chunked_sdr": 7.784742315624092
+          },
+          "other": {
+            "sdr": 4.813267383256815,
+            "chunked_sdr": 5.161175162595599
+          },
+          "vocals": {
+            "sdr": 8.554725536124186,
+            "chunked_sdr": 8.744372206724613
+          }
+        },
+        "mean": {
+          "sdr": 6.919798821211991,
+          "chunked_sdr": 7.758628684287588
+        }
+      },
+      "sdr_vs_fp32": 16.53
+    },
+    {
+      "name": "eager tf32 ov.10 b8",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 8,
+        "precision": "tf32"
+      },
+      "load_s": 0.35,
+      "first_call_s": 0.22,
+      "separate_s": 2.3,
+      "separate_runs_s": [
+        2.304,
+        2.299,
+        2.3
+      ],
+      "realtime_x": 106.5,
+      "peak_alloc_gib": 4.07,
+      "peak_reserved_gib": 5.69,
+      "stages_s": {
+        "to_device": 0.0109,
+        "chunk": 0.0005,
+        "stft": 0.0164,
+        "network": 2.0855,
+        "istft": 0.0802,
+        "overlap_add": 0.0052,
+        "to_host": 0.0951
+      },
+      "inference_cost_per_audio_min": 0.000222,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.434789045143676,
+            "chunked_sdr": 9.344075220602486
+          },
+          "bass": {
+            "sdr": 5.8767138275883655,
+            "chunked_sdr": 7.784585969538348
+          },
+          "other": {
+            "sdr": 4.813446115702797,
+            "chunked_sdr": 5.161212000916204
+          },
+          "vocals": {
+            "sdr": 8.554817681238278,
+            "chunked_sdr": 8.74467707339927
+          }
+        },
+        "mean": {
+          "sdr": 6.9199416674182785,
+          "chunked_sdr": 7.758637566114077
+        }
+      },
+      "sdr_vs_fp32": 16.53
+    },
+    {
+      "name": "eager fp16 ov.10 b4",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 4,
+        "precision": "fp16"
+      },
+      "load_s": 0.34,
+      "first_call_s": 6.27,
+      "separate_s": 2.273,
+      "separate_runs_s": [
+        4.496,
+        2.267,
+        2.273
+      ],
+      "realtime_x": 107.7,
+      "peak_alloc_gib": 2.24,
+      "peak_reserved_gib": 3.53,
+      "stages_s": {
+        "to_device": 0.0112,
+        "chunk": 0.0005,
+        "stft": 0.0191,
+        "network": 2.0416,
+        "istft": 0.0872,
+        "overlap_add": 0.0053,
+        "to_host": 0.1013
+      },
+      "inference_cost_per_audio_min": 0.000219,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.434428070784252,
+            "chunked_sdr": 9.3436374316294
+          },
+          "bass": {
+            "sdr": 5.878491078135488,
+            "chunked_sdr": 7.78629574285637
+          },
+          "other": {
+            "sdr": 4.814088804135643,
+            "chunked_sdr": 5.161883142594524
+          },
+          "vocals": {
+            "sdr": 8.5546154167147,
+            "chunked_sdr": 8.742934924268031
+          }
+        },
+        "mean": {
+          "sdr": 6.920405842442521,
+          "chunked_sdr": 7.758687810337082
+        }
+      },
+      "sdr_vs_fp32": 16.53
+    },
+    {
+      "name": "eager fp16 ov.10 b8",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 8,
+        "precision": "fp16"
+      },
+      "load_s": 0.41,
+      "first_call_s": 0.21,
+      "separate_s": 1.896,
+      "separate_runs_s": [
+        4.671,
+        1.896,
+        1.894
+      ],
+      "realtime_x": 129.2,
+      "peak_alloc_gib": 3.74,
+      "peak_reserved_gib": 5.07,
+      "stages_s": {
+        "to_device": 0.011,
+        "chunk": 0.0005,
+        "stft": 0.0167,
+        "network": 1.6721,
+        "istft": 0.0864,
+        "overlap_add": 0.0052,
+        "to_host": 0.0977
+      },
+      "inference_cost_per_audio_min": 0.000183,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.43435767969586,
+            "chunked_sdr": 9.343629357849498
+          },
+          "bass": {
+            "sdr": 5.8783236795546765,
+            "chunked_sdr": 7.785680686195735
+          },
+          "other": {
+            "sdr": 4.814025022664995,
+            "chunked_sdr": 5.162047270638158
+          },
+          "vocals": {
+            "sdr": 8.554647243377275,
+            "chunked_sdr": 8.743012721642579
+          }
+        },
+        "mean": {
+          "sdr": 6.920338406323202,
+          "chunked_sdr": 7.758592509081493
+        }
+      },
+      "sdr_vs_fp32": 16.53
+    },
+    {
+      "name": "eager fp16 ov.10 b16",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 16,
+        "precision": "fp16"
+      },
+      "load_s": 0.41,
+      "first_call_s": 0.21,
+      "separate_s": 1.701,
+      "separate_runs_s": [
+        5.547,
+        1.701,
+        1.698
+      ],
+      "realtime_x": 144.0,
+      "peak_alloc_gib": 6.74,
+      "peak_reserved_gib": 9.45,
+      "stages_s": {
+        "to_device": 0.0108,
+        "chunk": 0.0005,
+        "stft": 0.0152,
+        "network": 1.4785,
+        "istft": 0.0857,
+        "overlap_add": 0.0051,
+        "to_host": 0.0988
+      },
+      "inference_cost_per_audio_min": 0.000164,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.434589926435788,
+            "chunked_sdr": 9.34373089501769
+          },
+          "bass": {
+            "sdr": 5.87827553594852,
+            "chunked_sdr": 7.785545514913636
+          },
+          "other": {
+            "sdr": 4.8140331071423095,
+            "chunked_sdr": 5.162149085880697
+          },
+          "vocals": {
+            "sdr": 8.554731578383992,
+            "chunked_sdr": 8.742860803403302
+          }
+        },
+        "mean": {
+          "sdr": 6.9204075369776525,
+          "chunked_sdr": 7.758571574803831
+        }
+      },
+      "sdr_vs_fp32": 16.53
+    },
+    {
+      "name": "eager fp16 ov.25 b8",
+      "config": {
+        "overlap": 0.25,
+        "batch_size": 8,
+        "precision": "fp16"
+      },
+      "load_s": 0.31,
+      "first_call_s": 0.25,
+      "separate_s": 2.254,
+      "separate_runs_s": [
+        4.126,
+        2.253,
+        2.254
+      ],
+      "realtime_x": 108.7,
+      "peak_alloc_gib": 3.76,
+      "peak_reserved_gib": 5.33,
+      "stages_s": {
+        "to_device": 0.0109,
+        "chunk": 0.0006,
+        "stft": 0.0197,
+        "network": 2.009,
+        "istft": 0.1033,
+        "overlap_add": 0.0062,
+        "to_host": 0.0977
+      },
+      "inference_cost_per_audio_min": 0.000218,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.354552276742375,
+            "chunked_sdr": 9.458783179882904
+          },
+          "bass": {
+            "sdr": 5.87710149528828,
+            "chunked_sdr": 8.111973629367906
+          },
+          "other": {
+            "sdr": 4.921374872025682,
+            "chunked_sdr": 5.291147907214022
+          },
+          "vocals": {
+            "sdr": 8.596964979901502,
+            "chunked_sdr": 8.892017131131173
+          }
+        },
+        "mean": {
+          "sdr": 6.937498405989459,
+          "chunked_sdr": 7.938480461899001
+        }
+      },
+      "sdr_vs_fp32": 58.48
+    },
+    {
+      "name": "eager fp16 ov.05 b8",
+      "config": {
+        "overlap": 0.05,
+        "batch_size": 8,
+        "precision": "fp16"
+      },
+      "load_s": 0.34,
+      "first_call_s": 0.21,
+      "separate_s": 1.856,
+      "separate_runs_s": [
+        1.856,
+        1.858,
+        1.856
+      ],
+      "realtime_x": 132.0,
+      "peak_alloc_gib": 3.74,
+      "peak_reserved_gib": 5.39,
+      "stages_s": {
+        "to_device": 0.0106,
+        "chunk": 0.0005,
+        "stft": 0.0162,
+        "network": 1.6408,
+        "istft": 0.0837,
+        "overlap_add": 0.005,
+        "to_host": 0.0926
+      },
+      "inference_cost_per_audio_min": 0.000179,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.27202280332886,
+            "chunked_sdr": 9.293321373877616
+          },
+          "bass": {
+            "sdr": 5.865797923045804,
+            "chunked_sdr": 7.810051028853556
+          },
+          "other": {
+            "sdr": 4.832624181299346,
+            "chunked_sdr": 5.152228012733036
+          },
+          "vocals": {
+            "sdr": 8.452602208328981,
+            "chunked_sdr": 8.632238076690957
+          }
+        },
+        "mean": {
+          "sdr": 6.855761779000748,
+          "chunked_sdr": 7.721959623038791
+        }
+      },
+      "sdr_vs_fp32": 16.55
+    },
+    {
+      "name": "eager bf16 ov.10 b8",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 8,
+        "precision": "bf16"
+      },
+      "load_s": 0.31,
+      "first_call_s": 6.04,
+      "separate_s": 1.935,
+      "separate_runs_s": [
+        4.685,
+        1.935,
+        1.926
+      ],
+      "realtime_x": 126.6,
+      "peak_alloc_gib": 3.74,
+      "peak_reserved_gib": 5.05,
+      "stages_s": {
+        "to_device": 0.011,
+        "chunk": 0.0005,
+        "stft": 0.0168,
+        "network": 1.708,
+        "istft": 0.0865,
+        "overlap_add": 0.0052,
+        "to_host": 0.1
+      },
+      "inference_cost_per_audio_min": 0.000187,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.445978249615745,
+            "chunked_sdr": 9.325490276201164
+          },
+          "bass": {
+            "sdr": 5.910539547049752,
+            "chunked_sdr": 7.801112498870011
+          },
+          "other": {
+            "sdr": 4.818999825325844,
+            "chunked_sdr": 5.215264805529241
+          },
+          "vocals": {
+            "sdr": 8.55099140052608,
+            "chunked_sdr": 8.758763740832258
+          }
+        },
+        "mean": {
+          "sdr": 6.931627255629355,
+          "chunked_sdr": 7.775157830358168
+        }
+      },
+      "sdr_vs_fp32": 16.59
+    },
+    {
+      "name": "compile bf16 ov.10 b8",
+      "config": {
+        "overlap": 0.1,
+        "batch_size": 8,
+        "precision": "bf16",
+        "backend": "compile"
+      },
+      "load_s": 3.34,
+      "first_call_s": 393.17,
+      "separate_s": 1.067,
+      "separate_runs_s": [
+        1.066,
+        1.068,
+        1.067
+      ],
+      "realtime_x": 229.4,
+      "peak_alloc_gib": 3.07,
+      "peak_reserved_gib": 3.92,
+      "stages_s": {
+        "to_device": 0.0108,
+        "chunk": 0.0005,
+        "stft": 0.0188,
+        "network": 0.832,
+        "istft": 0.0988,
+        "overlap_add": 0.0053,
+        "to_host": 0.0943
+      },
+      "inference_cost_per_audio_min": 0.000103,
+      "quality": {
+        "stems": {
+          "drums": {
+            "sdr": 8.439444501100954,
+            "chunked_sdr": 9.33665459215409
+          },
+          "bass": {
+            "sdr": 5.87803580867482,
+            "chunked_sdr": 7.791915349931607
+          },
+          "other": {
+            "sdr": 4.812650746069881,
+            "chunked_sdr": 5.22864673170726
+          },
+          "vocals": {
+            "sdr": 8.553340609099212,
+            "chunked_sdr": 8.753151529201304
+          }
+        },
+        "mean": {
+          "sdr": 6.920867916236217,
+          "chunked_sdr": 7.777592050748565
+        }
+      },
+      "sdr_vs_fp32": 16.53
+    }
+  ],
+  "e2e": {
+    "ffmpeg": {
+      "total_s": 12.362,
+      "stages_s": {
+        "decode": 1.6865,
+        "separate": 1.8805,
+        "encode": 8.7944
+      }
+    },
+    "lameenc": {
+      "total_s": 9.757,
+      "stages_s": {
+        "decode": 0.5129,
+        "separate": 1.8773,
+        "encode": 7.3663
+      }
+    }
+  }
+}

@@ -7,7 +7,6 @@ Each GPU runs in its own container, all at once. Results land in
 results/<sweep>/<gpu>.json and are summarized by bench/report.py.
 """
 
-from __future__ import annotations
 
 import json
 import os

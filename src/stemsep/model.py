@@ -61,7 +61,9 @@ class Spec:
 def pre(model, mix: torch.Tensor) -> Spec:
     """STFT and normalization, from the top of `HTDemucs.forward`."""
     z = model._spec(mix)
-    x = model._magnitude(z)
+    # On MPS, demucs's STFT runs on the CPU (no complex support), so `z` is
+    # there; the network's input goes back to the mix's device.
+    x = model._magnitude(z).to(mix.device)
     mean = x.mean(dim=(1, 2, 3), keepdim=True)
     std = x.std(dim=(1, 2, 3), keepdim=True)
     x = (x - mean) / (1e-5 + std)
@@ -78,8 +80,10 @@ def post(model, spec: Spec, x: torch.Tensor, xt: torch.Tensor) -> torch.Tensor:
     S = len(model.sources)
     length = spec.xt.shape[-1]
     x = x.float().view(B, S, -1, Fq, T) * spec.std[:, None] + spec.mean[:, None]
-    zout = model._mask(spec.z, x)
-    x = model._ispec(zout, length)
+    # The masking and iSTFT are complex, so on MPS they run on the CPU, as in
+    # `HTDemucs.forward`.
+    zout = model._mask(spec.z, x.cpu() if x.device.type == "mps" else x)
+    x = model._ispec(zout, length).to(spec.xt.device)
     xt = xt.float().view(B, S, -1, length) * spec.stdt[:, None] + spec.meant[:, None]
     return xt + x
 
