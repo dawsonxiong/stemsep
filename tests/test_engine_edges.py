@@ -404,3 +404,78 @@ def test_decode_reads_a_wav_whose_header_says_its_empty(tmp_path):
     data[at + 4 : at + 8] = bytes(4)
     path.write_bytes(data)
     assert decode(str(path), SR, 2).shape[-1] == SR
+
+
+# ---- separate_stream -----------------------------------------------------
+
+
+def _blocks(wav, size):
+    for a in range(0, wav.shape[-1], size):
+        yield wav[:, a : a + size]
+
+
+@pytest.mark.parametrize("static_batch", [False, True])
+@pytest.mark.parametrize("block", [1_000, SR, 10**9])
+def test_stream_reconstructs_and_streams_each_sample_once(stub, seg, static_batch, block):
+    stub.config = Config(batch_size=2, static_batch=static_batch)
+    torch.manual_seed(3)
+    for length in (1, 100, seg - 1, seg, seg + 1, 3 * seg + 12_345, 7 * seg):
+        wav = torch.randn(2, length) * 0.1 + 0.01
+        parts = []
+        out = stub.separate_stream(_blocks(wav, block), sink=parts.append)
+        for name, est in out.items():
+            assert est.shape == wav.shape
+            assert torch.allclose(est, wav, atol=1e-5), (length, name)
+            streamed = torch.cat([p[name] for p in parts], -1)
+            assert torch.equal(streamed, est), (length, name)
+        assert all(p["vocals"].shape[-1] > 0 for p in parts)
+
+
+def test_stream_starts_before_the_song_ends(stub, seg):
+    """Batches run while blocks still arrive, not all at the end."""
+    stub.config = Config(batch_size=2)
+    wav = torch.randn(2, 10 * seg) * 0.1
+    ran_before_end = []
+
+    def blocks():
+        for b in _blocks(wav, SR):
+            yield b
+            ran_before_end.append(len(stub._cores[0].batches))
+
+    stub._cores[0].batches.clear()
+    stub.separate_stream(blocks(), sink=lambda _: None)
+    assert ran_before_end[len(ran_before_end) // 2] > 0
+
+
+def test_stream_rejects_bad_blocks(stub):
+    stub.config = Config(batch_size=2)
+    with pytest.raises(ValueError):
+        stub.separate_stream(iter([torch.zeros(3, 10)]))
+    with pytest.raises(ValueError):
+        stub.separate_stream(iter([]))
+
+
+def test_stream_real_model(sep):
+    torch.manual_seed(4)
+    wav = torch.randn(2, SR * 12) * 0.1
+    out = sep.separate_stream(_blocks(wav, SR // 2))
+    assert set(out) == set(sep.sources)
+    assert all(v.shape == wav.shape and torch.isfinite(v).all() for v in out.values())
+
+
+@needs_ffmpeg
+def test_decode_blocks_matches_decode(tmp_path):
+    from stemsep.audio import NotStreamable, decode, decode_blocks
+
+    mp3, mono, rate = tmp_path / "t.mp3", tmp_path / "m.wav", tmp_path / "r.wav"
+    lavfi = ["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i"]
+    subprocess.run([*lavfi, "sine=f=440:d=5", "-ac", "2", "-ar", str(SR), "-b:a", "192k", str(mp3)], check=True)
+    subprocess.run([*lavfi, "sine=f=330:d=3", "-ac", "1", "-ar", str(SR), str(mono)], check=True)
+    subprocess.run([*lavfi, "sine=f=330:d=3", "-ar", "48000", str(rate)], check=True)
+    for path in (mp3, mono):
+        whole = decode(str(path), SR, 2)
+        streamed = torch.cat(list(decode_blocks(str(path), SR, 2, seconds=0.7)), -1)
+        # libsndfile's MP3 reads differ in the last bit between block sizes.
+        assert whole.shape == streamed.shape and torch.allclose(whole, streamed, atol=1e-6), path
+    with pytest.raises(NotStreamable):
+        list(decode_blocks(str(rate), SR, 2))

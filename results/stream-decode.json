@@ -1,0 +1,12 @@
+{
+  "decode, then separate + encode (s)": 3.862,
+  "decode while separating + encode (s)": 3.616,
+  "sdr stream - separate, per song (dB)": [
+    -0.0494,
+    -0.0366,
+    -0.0243,
+    0.1202,
+    0.0052,
+    -0.0356
+  ]
+}

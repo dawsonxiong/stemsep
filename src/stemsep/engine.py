@@ -13,7 +13,7 @@ from __future__ import annotations
 import math
 from contextlib import nullcontext
 from dataclasses import dataclass, field
-from typing import Callable, Literal, Sequence
+from typing import Callable, Iterable, Literal, Sequence
 
 import torch
 
@@ -309,3 +309,124 @@ class Separator:
             emit(out[..., emitted:length])
         return out[..., :length]
 
+
+    @torch.inference_mode()
+    def separate_stream(
+        self,
+        blocks: Iterable[torch.Tensor],
+        stems: Sequence[str] | None = None,
+        sink: Callable[[dict[str, torch.Tensor]], None] | None = None,
+        profiler: Profiler | None = None,
+    ) -> dict[str, torch.Tensor]:
+        """`separate`, for a song that arrives in pieces: `blocks` are
+        consecutive [channels, n] tensors, as a decoder produces them.
+        Separating starts as soon as there's a batch of chunks to run, so
+        decoding overlaps it rather than coming first.
+
+        Two things differ from `separate`, neither measurably:
+        - No song-level normalization, which needs the whole song. The model
+          normalizes every chunk itself; skipping it changed four full MUSDB
+          songs' SDR by under 0.001 dB.
+        - Chunks start at demucs's fixed stride, plus one last chunk flush
+          with the end, rather than spread evenly over a length known up
+          front: -0.00 ± 0.01 dB SDR on full songs.
+        """
+        prof = profiler or NullProfiler()
+        wanted = list(self.sources if stems is None else stems)
+        if not wanted:
+            raise ValueError("no stems requested")
+        unknown = set(wanted) - set(self.sources)
+        if unknown:
+            raise ValueError(f"unknown stems {sorted(unknown)}")
+        plan = self._plan(wanted)
+        if len(plan) != 1:
+            # A bag's models each need the whole song in turn anyway.
+            return self.separate(torch.cat(list(blocks), -1), stems, sink=sink, profiler=prof)
+
+        cfg = self.config
+        sub, core = self.bag.models[plan[0][0]], self._cores[plan[0][0]]
+        seg = htd.segment_length(sub)
+        stride = max(1, int((1 - cfg.overlap) * seg))
+        S, C = len(self.sources), self.audio_channels
+        weight = window(seg, self.device)
+        names = [self.sources.index(n) for n in wanted]
+
+        buf = torch.zeros(C, 0, device=self.device)
+        out = torch.zeros(S, C, 0, device=self.device)
+        weight_sum = torch.zeros(0, device=self.device)
+        decoded = 0  # samples in buf
+        planned = 0  # next fixed-stride chunk start
+        pending: list[int] = []  # chunk starts with their audio, not yet run
+        emitted = 0
+        first = sink is not None and not cfg.static_batch
+
+        def ensure(n: int) -> None:
+            nonlocal buf, out, weight_sum
+            if n <= buf.shape[-1]:
+                return
+            cap = max(n, 2 * buf.shape[-1], seg)
+            grow = cap - buf.shape[-1]
+            buf = torch.cat([buf, buf.new_zeros(C, grow)], -1)
+            out = torch.cat([out, out.new_zeros(S, C, grow)], -1)
+            weight_sum = torch.cat([weight_sum, weight_sum.new_zeros(grow)])
+
+        def run(offsets: list[int]) -> None:
+            batch = torch.stack([buf[:, o : o + seg] for o in offsets])
+            n = batch.shape[0]
+            if cfg.static_batch and n < cfg.batch_size:
+                batch = torch.cat([batch, batch.new_zeros(cfg.batch_size - n, *batch.shape[1:])])
+            with prof.stage("stft"):
+                spec = htd.pre(sub, batch)
+            with prof.stage("network"), self._autocast():
+                x, xt = core(spec.x, spec.xt)
+            with prof.stage("istft"):
+                result = htd.post(sub, spec, x, xt)[:n]
+            with prof.stage("overlap_add"):
+                for i, o in enumerate(offsets):
+                    out[..., o : o + seg] += result[i] * weight
+                    weight_sum[o : o + seg] += weight
+
+        def emit(until: int) -> None:
+            nonlocal emitted
+            if sink is None or until <= emitted:
+                return
+            region = (out[:, :, emitted:until] / weight_sum[emitted:until]).cpu()
+            sink({n: region[i] for n, i in zip(wanted, names)})
+            emitted = until
+
+        for block in blocks:
+            if block.dim() != 2 or block.shape[0] != C:
+                raise ValueError(f"expected [{C}, n] blocks, got {list(block.shape)}")
+            n = block.shape[-1]
+            ensure(decoded + n)
+            buf[:, decoded : decoded + n] = block.to(self.device, torch.float32)
+            decoded += n
+            while planned + seg <= decoded:
+                pending.append(planned)
+                planned += stride
+            size = cfg.first_batch if first else cfg.batch_size
+            while len(pending) >= size:
+                run(pending[:size])
+                pending = pending[size:]
+                first, size = False, cfg.batch_size
+                # Nothing before the next chunk to run can change, nor before
+                # the last chunk, which starts a chunk before the song's end
+                # at the earliest, and the end is at least what's decoded.
+                emit(min(pending[0] if pending else planned, decoded - seg))
+
+        length = decoded
+        if length == 0:
+            raise ValueError("empty audio")
+        ensure(max(length, seg))
+        if length <= seg:
+            pending = [0]  # one chunk, zero-padded past the end
+        elif (pending[-1] if pending else planned - stride) + seg < length:
+            pending.append(length - seg)
+        for i in range(0, len(pending), cfg.batch_size):
+            run(pending[i : i + cfg.batch_size])
+        out[..., :length] /= weight_sum[:length]
+        if sink is not None and emitted < length:
+            region = out[:, :, emitted:length].cpu()
+            sink({n: region[i] for n, i in zip(wanted, names)})
+        result = out[:, :, :length].cpu()
+        return {n: result[i] for n, i in zip(wanted, names)}

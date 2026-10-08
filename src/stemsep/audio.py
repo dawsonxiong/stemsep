@@ -10,7 +10,7 @@ import math
 import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from typing import Iterable
+from typing import Iterable, Iterator
 
 import numpy as np
 import torch
@@ -47,6 +47,49 @@ def decode(path: str, samplerate: int = 44100, channels: int = 2) -> torch.Tenso
     else:
         raise DecodeError(f"can't make {channels} channels from {src}")
     return torch.from_numpy(frames.T.copy())
+
+
+class NotStreamable(Exception):
+    """libsndfile can't read this file as `decode` would, so it has to be
+    decoded whole, by `decode`. Raised before the first block if that's
+    known up front, or after the last if the read came up short."""
+
+
+def decode_blocks(
+    path: str, samplerate: int = 44100, channels: int = 2, seconds: float = 2.0
+) -> Iterator[torch.Tensor]:
+    """`decode`, a block of `seconds` at a time, for `Separator.
+    separate_stream`, so separating can start before decoding ends. Only
+    what libsndfile reads as `decode` would (see `_read_soundfile`)."""
+    import soundfile as sf
+
+    try:
+        raw = open(path, "rb")
+        f = sf.SoundFile(reads := _Reads(raw))
+    except Exception as e:
+        raise NotStreamable(str(e)) from e
+    with raw, f:
+        if f.samplerate != samplerate or f.channels > 2:
+            raise NotStreamable(f"{f.samplerate} Hz, {f.channels} channels")
+        got = 0
+        reader = f.blocks(blocksize=int(seconds * samplerate), dtype="float32", always_2d=True)
+        while True:
+            try:
+                block = next(reader)
+            except StopIteration:
+                break
+            except Exception as e:  # a read that fails partway: start again with decode
+                raise NotStreamable(str(e)) from e
+            got += len(block)
+            if f.channels == 1 and channels > 1:
+                block = np.repeat(block, channels, axis=1)
+            elif channels == 1 and f.channels > 1:
+                block = block.mean(axis=1, keepdims=True)
+            yield torch.from_numpy(block.T.copy())
+        if not got:
+            raise NotStreamable("no audio")
+        if f.format == "MP3" and os.fstat(raw.fileno()).st_size - reads.end > 4096:
+            raise NotStreamable("libsndfile stopped short of the end")
 
 
 def _read_soundfile(path: str, samplerate: int) -> np.ndarray | None:
