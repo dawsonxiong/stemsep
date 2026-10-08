@@ -150,6 +150,7 @@ class Separator:
         stems: Sequence[str] | None = None,
         progress: Callable[[float], None] | None = None,
         profiler: Profiler | None = None,
+        sink: Callable[[dict[str, torch.Tensor]], None] | None = None,
     ) -> dict[str, torch.Tensor]:
         """Separate `wav`, a [channels, length] float tensor at
         `self.samplerate`, into {stem: [channels, length]} float32 tensors on
@@ -158,6 +159,12 @@ class Separator:
         `stems` limits the work to the sub-models that contribute to those
         stems, which only saves anything for a bag of specialists such as
         htdemucs_ft. `progress` is called with the fraction of chunks done.
+
+        `sink`, if given, gets the stems as they're finished, so they can be
+        encoded while the rest separates: {stem: [channels, n]} on the CPU,
+        consecutive and covering the song, the same samples as the result.
+        With a bag of several models nothing is final until the last one, so
+        it gets the whole song at once.
         """
         prof = profiler or NullProfiler()
         # `stems or ...` would turn an empty list into every stem.
@@ -193,10 +200,18 @@ class Separator:
             if progress:
                 progress(done / total_chunks)
 
+        def emit(region: torch.Tensor) -> None:
+            region = (region * scale + mean).cpu()
+            sink({name: region[self.sources.index(name)] for name in wanted})
+
+        streaming = sink is not None and len(plan) == 1
         estimate = None
         totals = torch.zeros(len(self.sources), device=self.device)
         for index, weights in plan:
-            out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)
+            out = self._separate_one(
+                self.bag.models[index], self._cores[index], wav, prof, tick,
+                emit if streaming else None,
+            )  # fmt: skip
             w = torch.tensor(weights, device=self.device)
             out *= w[:, None, None]
             estimate = out if estimate is None else estimate + out
@@ -206,7 +221,10 @@ class Separator:
 
         with prof.stage("to_host"):
             estimate = (estimate * scale + mean).cpu()
-        return {name: estimate[self.sources.index(name)] for name in wanted}
+        result = {name: estimate[self.sources.index(name)] for name in wanted}
+        if sink is not None and not streaming:
+            sink(result)
+        return result
 
     def _plan(self, wanted: list[str]) -> list[tuple[int, list[float]]]:
         """(sub-model index, weights) for each sub-model that adds to
@@ -223,7 +241,10 @@ class Separator:
     def _offsets(self, length: int, sub) -> list[int]:
         return plan_offsets(length, htd.segment_length(sub), self.config.overlap)
 
-    def _separate_one(self, sub, core, wav, prof: Profiler, tick) -> torch.Tensor:
+    def _separate_one(self, sub, core, wav, prof: Profiler, tick, emit=None) -> torch.Tensor:
+        """One sub-model's output for the whole song, normalized. `emit`, if
+        given, gets each stretch of it once no later chunk can change it:
+        everything before the next chunk's start."""
         cfg = self.config
         seg = htd.segment_length(sub)
         length = wav.shape[-1]
@@ -236,6 +257,7 @@ class Separator:
         out = torch.zeros(len(self.sources), wav.shape[0], max(length, seg), device=self.device)
         weight_sum = torch.zeros(max(length, seg), device=self.device)
         weight = window(seg, self.device)
+        emitted = 0
 
         for start in range(0, len(offsets), cfg.batch_size):
             batch = chunks[start : start + cfg.batch_size]
@@ -255,7 +277,14 @@ class Separator:
                     out[..., o : o + seg] += result[i] * weight
                     weight_sum[o : o + seg] += weight
             tick(n)
+            if emit is not None and start + n < len(offsets):
+                final = offsets[start + n]
+                if final > emitted:
+                    emit(out[..., emitted:final] / weight_sum[emitted:final])
+                    emitted = final
 
         out /= weight_sum
+        if emit is not None and emitted < length:
+            emit(out[..., emitted:length])
         return out[..., :length]
 

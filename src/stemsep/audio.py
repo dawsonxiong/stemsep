@@ -81,26 +81,122 @@ def _rescale(wav: torch.Tensor) -> torch.Tensor:
 QUALITY = 5
 
 
-def encode_mp3(
-    wav: torch.Tensor, path: str, samplerate: int, bitrate: int = 192, quality: int = QUALITY
-) -> None:
-    """Encode [channels, length] float audio to CBR MP3 in process with
-    lameenc, as `demucs.audio.save_audio` does. lameenc releases the GIL, so
-    stems encode in parallel on threads."""
+def _to_int16(wav: torch.Tensor) -> np.ndarray:
+    """Interleaved int16 samples. As demucs's i16_pcm does, give or take
+    0.0003 dB: it clamps first and scales by 2**15 - 1."""
+    return (wav * 2**15).clamp_(-(2**15), 2**15 - 1).short().T.contiguous().numpy()
+
+
+def _lame(samplerate: int, channels: int, bitrate: int, quality: int):
     import lameenc
 
-    wav = _rescale(wav.float())
-    # To int16 as demucs's i16_pcm does, give or take 0.0003 dB: it clamps
-    # first and scales by 2**15 - 1. Nothing clips once rescaled.
-    pcm = (wav * 2**15).clamp_(-(2**15), 2**15 - 1).short().T.contiguous().numpy()
     encoder = lameenc.Encoder()
     encoder.set_bit_rate(bitrate)
     encoder.set_in_sample_rate(samplerate)
-    encoder.set_channels(wav.shape[0])
+    encoder.set_channels(channels)
     encoder.set_quality(quality)
-    data = encoder.encode(pcm.tobytes()) + encoder.flush()
+    return encoder
+
+
+def mp3_bytes(
+    wav: torch.Tensor, samplerate: int, bitrate: int = 192, quality: int = QUALITY
+) -> bytes:
+    """[channels, length] float audio as CBR MP3, encoded in process with
+    lameenc, as `demucs.audio.save_audio` does. lameenc releases the GIL, so
+    stems encode in parallel on threads."""
+    wav = _rescale(wav.float())
+    encoder = _lame(samplerate, wav.shape[0], bitrate, quality)
+    return bytes(encoder.encode(_to_int16(wav).tobytes()) + encoder.flush())
+
+
+def encode_mp3(
+    wav: torch.Tensor, path: str, samplerate: int, bitrate: int = 192, quality: int = QUALITY
+) -> None:
+    """`mp3_bytes`, written to `path`."""
     with open(path, "wb") as f:
-        f.write(data)
+        f.write(mp3_bytes(wav, samplerate, bitrate, quality))
+
+
+class StreamingMP3:
+    """Encodes stems while they're still being separated: pass `feed` as
+    `Separator.separate`'s `sink`, then call `finish` with its result.
+
+    The rescale that keeps a stem from clipping needs the stem's peak, which
+    isn't known until the end. So each stem is encoded as it arrives as if it
+    won't need one, and `finish` encodes it again, whole, in the rare case it
+    does: no stem of 12 full MUSDB songs came within 1% of clipping. Either
+    way the bytes are exactly `mp3_bytes`'s."""
+
+    def __init__(
+        self,
+        names: Iterable[str],
+        samplerate: int,
+        channels: int,
+        bitrate: int = 192,
+        quality: int = QUALITY,
+    ):
+        import queue
+        import threading
+
+        self.samplerate, self.bitrate, self.quality = samplerate, bitrate, quality
+        self._queues = {n: queue.Queue() for n in names}
+        self._data: dict[str, bytearray] = {}
+        self._peak = {n: 0.0 for n in self._queues}
+        self._errors: list[BaseException] = []
+        self._closed = False
+        self._threads = [
+            threading.Thread(target=self._run, args=(n, channels), daemon=True)
+            for n in self._queues
+        ]
+        for t in self._threads:
+            t.start()
+
+    def feed(self, segments: dict[str, torch.Tensor]) -> None:
+        for name, segment in segments.items():
+            self._queues[name].put(segment)
+
+    def _run(self, name: str, channels: int) -> None:
+        try:
+            encoder = _lame(self.samplerate, channels, self.bitrate, self.quality)
+            data = bytearray()
+            while (segment := self._queues[name].get()) is not None:
+                segment = segment.float()
+                self._peak[name] = max(self._peak[name], segment.abs().max().item())
+                data += encoder.encode(_to_int16(segment).tobytes())
+            data += encoder.flush()
+            self._data[name] = data
+        except BaseException as e:  # surfaced by finish
+            self._errors.append(e)
+            # Drain, so feed never blocks on a dead encoder.
+            while self._queues[name].get() is not None:
+                pass
+
+    def close(self) -> None:
+        """Stop the encoders without waiting for a result, as when the
+        separation failed. Safe to call more than once."""
+        if not self._closed:
+            self._closed = True
+            for q in self._queues.values():
+                q.put(None)
+        for t in self._threads:
+            t.join()
+
+    def finish(self, stems: dict[str, torch.Tensor]) -> dict[str, bytes]:
+        """Each stem's MP3. `stems` is `separate`'s result, used to encode
+        again any stem that turned out to need rescaling."""
+        self.close()
+        if self._errors:
+            raise self._errors[0]
+        clipped = [n for n, peak in self._peak.items() if 1.01 * peak > 1]
+        out = {n: bytes(d) for n, d in self._data.items() if n not in clipped}
+        if clipped:
+            with ThreadPoolExecutor(len(clipped)) as pool:
+                encoded = pool.map(
+                    lambda n: mp3_bytes(stems[n], self.samplerate, self.bitrate, self.quality),
+                    clipped,
+                )
+                out.update(zip(clipped, encoded))
+        return out
 
 
 def encode_mp3_ffmpeg(

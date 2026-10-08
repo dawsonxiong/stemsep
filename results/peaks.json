@@ -1,0 +1,98 @@
+[
+  {
+    "track": "AM Contra - Heart Peripheral",
+    "mixture_peak": 1.0,
+    "drums": 0.6162,
+    "bass": 0.3224,
+    "other": 0.2365,
+    "vocals": 0.5363
+  },
+  {
+    "track": "Al James - Schoolboy Facination",
+    "mixture_peak": 1.0,
+    "drums": 0.5145,
+    "bass": 0.2932,
+    "other": 0.4306,
+    "vocals": 0.6492
+  },
+  {
+    "track": "Angels In Amplifiers - I'm Alright",
+    "mixture_peak": 1.0,
+    "drums": 0.499,
+    "bass": 0.2761,
+    "other": 0.6258,
+    "vocals": 0.552
+  },
+  {
+    "track": "Arise - Run Run Run",
+    "mixture_peak": 1.0,
+    "drums": 0.8686,
+    "bass": 0.5886,
+    "other": 0.7598,
+    "vocals": 0.421
+  },
+  {
+    "track": "BKS - Bulldozer",
+    "mixture_peak": 1.0,
+    "drums": 0.7905,
+    "bass": 0.4067,
+    "other": 0.384,
+    "vocals": 0.4163
+  },
+  {
+    "track": "BKS - Too Much",
+    "mixture_peak": 1.0,
+    "drums": 0.7675,
+    "bass": 0.1903,
+    "other": 0.283,
+    "vocals": 0.4605
+  },
+  {
+    "track": "Ben Carrigan - We'll Talk About It All Tonight",
+    "mixture_peak": 1.0,
+    "drums": 0.7139,
+    "bass": 0.2958,
+    "other": 0.4113,
+    "vocals": 0.3663
+  },
+  {
+    "track": "Bobby Nobody - Stitch Up",
+    "mixture_peak": 1.0,
+    "drums": 0.7879,
+    "bass": 0.2993,
+    "other": 0.3215,
+    "vocals": 0.4773
+  },
+  {
+    "track": "Buitraker - Revo X",
+    "mixture_peak": 1.0,
+    "drums": 0.7548,
+    "bass": 0.237,
+    "other": 0.4661,
+    "vocals": 0.3202
+  },
+  {
+    "track": "Carlos Gonzalez - A Place For Us",
+    "mixture_peak": 1.0,
+    "drums": 0.6645,
+    "bass": 0.2479,
+    "other": 0.4121,
+    "vocals": 0.5983
+  },
+  {
+    "track": "Cristina Vane - So Easy",
+    "mixture_peak": 1.0,
+    "drums": 0.7046,
+    "bass": 0.2574,
+    "other": 0.4414,
+    "vocals": 0.5416
+  },
+  {
+    "track": "Detsky Sad - Walkie Talkie",
+    "mixture_peak": 1.0,
+    "drums": 0.7518,
+    "bass": 0.1442,
+    "other": 0.5702,
+    "vocals": 0.6222
+  }
+]

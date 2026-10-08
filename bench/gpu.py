@@ -197,39 +197,54 @@ class Bench:
 
     def _end_to_end(self) -> dict:
         """Decode an MP3, separate, encode four MP3s: the whole job minus
-        network transfers, with the production candidate config."""
+        network transfers. "streaming" encodes while separating, as
+        stemplayer does; the others encode after."""
         import tempfile
 
         import torch
 
         from stemsep import Config, Profiler, Separator, audio
 
-        sep = Separator("htdemucs", Config(overlap=0.10, batch_size=8, precision="fp16"))
-        sep.separate(self.mixture)  # warm every batch shape, as in _measure
+        seps = {
+            b: Separator("htdemucs", Config(overlap=0.10, batch_size=b, precision="fp16"))
+            for b in (8, 16)
+        }
+        for sep in seps.values():
+            sep.separate(self.mixture)  # warm every batch shape, as in _measure
         out = {}
         variants = {
-            "lameenc q5": (audio.encode_mp3, 5),
-            "lameenc q2": (audio.encode_mp3, 2),
-            "ffmpeg q5": (audio.encode_mp3_ffmpeg, 5),
+            "streaming lameenc q5": (8, None, 5),
+            "streaming lameenc q5 b16": (16, None, 5),
+            "lameenc q5": (8, audio.encode_mp3, 5),
+            "lameenc q2": (8, audio.encode_mp3, 2),
+            "ffmpeg q5": (8, audio.encode_mp3_ffmpeg, 5),
         }
-        for encoder, (fn, quality) in variants.items():
+        for name, (batch, fn, quality) in variants.items():
+            sep = seps[batch]
             prof = Profiler("cuda")
             with tempfile.TemporaryDirectory() as tmp:
                 t0 = time.perf_counter()
                 with prof.stage("decode"):
                     wav = audio.decode(f"{TESTSET}/mixture.mp3")
-                with prof.stage("separate"):
-                    stems = sep.separate(wav)
-                with prof.stage("encode"):
-                    audio.encode_all(
-                        stems,
-                        {s: os.path.join(tmp, f"{s}.mp3") for s in stems},
-                        sep.samplerate,
-                        quality=quality,
-                        encoder=fn,
-                    )
+                if fn is None:
+                    enc = audio.StreamingMP3(sep.sources, sep.samplerate, 2, quality=quality)
+                    with prof.stage("separate"):
+                        stems = sep.separate(wav, sink=enc.feed)
+                    with prof.stage("encode"):
+                        enc.finish(stems)
+                else:
+                    with prof.stage("separate"):
+                        stems = sep.separate(wav)
+                    with prof.stage("encode"):
+                        audio.encode_all(
+                            stems,
+                            {s: os.path.join(tmp, f"{s}.mp3") for s in stems},
+                            sep.samplerate,
+                            quality=quality,
+                            encoder=fn,
+                        )
                 total = time.perf_counter() - t0
-            out[encoder] = {"total_s": round(total, 3), "stages_s": prof.as_dict()}
+            out[name] = {"total_s": round(total, 3), "stages_s": prof.as_dict()}
         torch.cuda.empty_cache()
         return out
 
