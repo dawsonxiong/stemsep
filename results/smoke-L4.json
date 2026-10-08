@@ -1,0 +1,59 @@
+{
+  "gpu": "L4",
+  "rows": [
+    {
+      "batch_size": 8,
+      "overlap": 0.1,
+      "first_s": 5.76,
+      "warm_s": 3.723,
+      "sdr_vs_fp32": 129.6,
+      "nan": false
+    },
+    {
+      "batch_size": 8,
+      "overlap": 0.1,
+      "precision": "tf32",
+      "first_s": 5.86,
+      "warm_s": 3.475,
+      "sdr_vs_fp32": 71.0,
+      "nan": false
+    },
+    {
+      "batch_size": 8,
+      "overlap": 0.1,
+      "precision": "fp16",
+      "first_s": 5.51,
+      "warm_s": 2.845,
+      "sdr_vs_fp32": 57.9,
+      "nan": false
+    },
+    {
+      "batch_size": 8,
+      "overlap": 0.1,
+      "precision": "bf16",
+      "first_s": 5.91,
+      "warm_s": 2.997,
+      "sdr_vs_fp32": 36.7,
+      "nan": false
+    },
+    {
+      "batch_size": 8,
+      "overlap": 0.1,
+      "precision": "fp16",
+      "cudnn_benchmark": true,
+      "first_s": 18.63,
+      "warm_s": 2.955,
+      "sdr_vs_fp32": 56.8,
+      "nan": false
+    },
+    {
+      "batch_size": 8,
+      "overlap": 0.1,
+      "cudnn_benchmark": true,
+      "first_s": 19.36,
+      "warm_s": 3.711,
+      "sdr_vs_fp32": 129.6,
+      "nan": false
+    }
+  ]
+}

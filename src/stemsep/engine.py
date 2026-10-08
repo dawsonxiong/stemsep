@@ -31,7 +31,9 @@ class Config:
     # Chunks per forward pass.
     batch_size: int = 8
     # fp16 and bf16 run the network under autocast; the STFTs stay float32.
-    # tf32 keeps float32 tensors but lets matmuls and convs use TF32 units.
+    # tf32 keeps float32 tensors but lets matmuls use TF32 units too. Convs
+    # use them in every mode on GPUs that have them, as torch (and so demucs)
+    # does by default, through torch.backends.cudnn.allow_tf32.
     precision: Precision = "fp32"
     backend: Backend = "eager"
     # torch.compile mode, for backend="compile".
