@@ -10,7 +10,7 @@ import math
 import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from typing import Iterable, Iterator
+from typing import Callable, Iterable, Iterator
 
 import numpy as np
 import torch
@@ -270,12 +270,18 @@ class StreamingMP3:
         bitrate: int = 192,
         quality: int = QUALITY,
         gain: float = 1.0,
+        on_data: Callable[[str, bytes], None] | None = None,
     ):
         import queue
         import threading
 
         self.samplerate, self.bitrate, self.quality = samplerate, bitrate, quality
         self.gain = gain
+        # Called on the encoder's thread with each piece of a stem's MP3 as
+        # it's made, so it can be uploading already. For a stem in `rescaled`
+        # after finish, what it was handed is void: finish's bytes replace it.
+        self.on_data = on_data
+        self.rescaled: set[str] = set()
         # Each stem's stored_gain, once finish has run.
         self.gains: dict[str, float] = {}
         self._queues = {n: queue.Queue() for n in names}
@@ -305,9 +311,15 @@ class StreamingMP3:
                 segment = segment.float() * self.gain
                 self._peak[name] = max(self._peak[name], segment.abs().max().item())
                 if not self._needs_rescale(name):
-                    data += encoder.encode(_to_int16(segment).tobytes())
+                    chunk = encoder.encode(_to_int16(segment).tobytes())
+                    data += chunk
+                    if self.on_data and chunk:
+                        self.on_data(name, bytes(chunk))
             if not self._needs_rescale(name):
-                data += encoder.flush()
+                chunk = encoder.flush()
+                data += chunk
+                if self.on_data and chunk:
+                    self.on_data(name, bytes(chunk))
                 self._data[name] = data
         except BaseException as e:  # surfaced by finish
             self._errors.append(e)
@@ -356,6 +368,7 @@ class StreamingMP3:
             }
             out = {n: bytes(d) for n, d in self._data.items() if not self._needs_rescale(n)}
             out.update({n: f.result() for n, f in {**early, **late}.items()})
+        self.rescaled = set(early) | set(late)
         # A stem that stopped early stopped tracking its peak too.
         self.gains = {
             n: stored_gain(stems[n].abs().max().item() if n in early or n in late else

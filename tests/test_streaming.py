@@ -192,3 +192,17 @@ def test_a_nan_in_a_loud_stem_still_reports_a_gain():
         enc.feed({"a": wav[:, a : a + SR]})
     enc.finish({"a": wav})
     json.dumps(enc.gains, allow_nan=False)
+
+
+def test_on_data_pieces_join_to_the_mp3():
+    torch.manual_seed(5)
+    quiet = torch.randn(2, SR * 3) * 0.2
+    loud = torch.randn(2, SR * 3) * 0.6
+    stems = {"quiet": quiet, "loud": loud}
+    pieces = {"quiet": [], "loud": []}
+    enc = StreamingMP3(stems, SR, 2, on_data=lambda n, b: pieces[n].append(b))
+    for a in range(0, 3 * SR, 20_000):
+        enc.feed({k: v[:, a : a + 20_000] for k, v in stems.items()})
+    out = enc.finish(stems)
+    assert b"".join(pieces["quiet"]) == out["quiet"]
+    assert enc.rescaled == {"loud"}  # what it was handed for "loud" is void
