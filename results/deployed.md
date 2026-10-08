@@ -41,3 +41,7 @@ stemplayer keeps it warm 20 minutes after each request (`scaledown_window=1200`)
 Cold GPU jobs preceded by a `/warm` call 6 s earlier (standing in for the upload), after > scaledown_window idle: 7.96 s and 6.38 s seen by the caller, plus 20.71 s for the first cold start after a deploy, which took the snapshot. Without the head start: 9.4–12 s.
 
 Final warm jobs on staging: 4.95, 5.15, 5.35, 5.97 s.
+
+## Job status through Workers KV
+
+A throwaway Worker with its own KV namespace (both deleted after) stood in for stemplayer's status path. This machine (Cloudflare location YYZ) wrote "processing" and kept reading the key, as `/api/separate` and the browser's polling do. A Modal function, whose requests reached Cloudflare at LAX like the job's webhook, then wrote "ready". Time until YYZ read "ready", six trials (`kv-propagation.jsonl`): 26.4, 6.8, 38.2, 18.3, 50.1, 30.0 s. KV caches a key at each location, so a person far from Modal's region sees progress and "ready" up to a minute after the stems exist.

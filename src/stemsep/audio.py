@@ -94,17 +94,25 @@ class _Reads:
 
 
 def _read_ffmpeg(path: str, samplerate: int) -> np.ndarray:
-    cmd = [
-        "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
-        "-i", path,
-        "-map", "0:a:0",
-        "-ar", str(samplerate),
-        "-c:a", "pcm_f32le", "-f", "wav", "-",
-    ]  # fmt: skip
-    proc = subprocess.run(cmd, capture_output=True)
-    if proc.returncode != 0:
-        raise DecodeError(proc.stderr.decode(errors="replace").strip()[-500:])
-    src, data = _wav_samples(proc.stdout)
+    import os
+    import tempfile
+
+    # To a file in memory rather than a pipe: for a 4-minute song that's
+    # 86 MB Python no longer has to pull through a pipe, ~0.2 s faster.
+    shm = "/dev/shm" if os.path.isdir("/dev/shm") else None
+    with tempfile.NamedTemporaryFile(suffix=".wav", dir=shm) as out:
+        cmd = [
+            "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+            "-i", path,
+            "-map", "0:a:0",
+            "-ar", str(samplerate),
+            "-c:a", "pcm_f32le", "-f", "wav", out.name,
+        ]  # fmt: skip
+        proc = subprocess.run(cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise DecodeError(proc.stderr.decode(errors="replace").strip()[-500:])
+        with open(out.name, "rb") as f:
+            src, data = _wav_samples(f.read())
     return data[: data.size // src * src].reshape(-1, src)
 
 
