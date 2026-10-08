@@ -90,7 +90,8 @@ def encode_mp3(
     import lameenc
 
     wav = _rescale(wav.float())
-    # demucs's i16_pcm.
+    # To int16 as demucs's i16_pcm does, give or take 0.0003 dB: it clamps
+    # first and scales by 2**15 - 1. Nothing clips once rescaled.
     pcm = (wav * 2**15).clamp_(-(2**15), 2**15 - 1).short().T.contiguous().numpy()
     encoder = lameenc.Encoder()
     encoder.set_bit_rate(bitrate)
