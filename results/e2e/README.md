@@ -5,9 +5,11 @@
 
 End to end (decode MP3 → separate → encode 4 MP3s), fp16 ov.10 b8:
 
-- lameenc q5: **8.73 s**, 0.204¢ per song (decode 0.75s, separate 3.92s, encode 4.06s)
-- lameenc q2: **13.26 s**, 0.311¢ per song (decode 0.75s, separate 3.93s, encode 8.58s)
-- ffmpeg q5: **9.74 s**, 0.228¢ per song (decode 0.73s, separate 3.94s, encode 5.07s)
+- streaming lameenc q5: **6.58 s**, 0.154¢ per song (decode 0.61s, separate 4.81s, encode 1.15s)
+- streaming lameenc q5 b16: **7.39 s**, 0.173¢ per song (decode 0.59s, separate 4.61s, encode 2.19s)
+- lameenc q5: **9.97 s**, 0.233¢ per song (decode 0.59s, separate 4.38s, encode 5.00s)
+- lameenc q2: **14.65 s**, 0.343¢ per song (decode 0.58s, separate 4.38s, encode 9.69s)
+- ffmpeg q5: **10.84 s**, 0.254¢ per song (decode 0.59s, separate 4.44s, encode 5.82s)
 
 ### L4 (NVIDIA L4, 22.0 GiB) — torch 2.11.0+cu130, CUDA 13.0, 245 s song
 
@@ -16,21 +18,21 @@ End to end (decode MP3 → separate → encode 4 MP3s), fp16 ov.10 b8:
 
 End to end (decode MP3 → separate → encode 4 MP3s), fp16 ov.10 b8:
 
-- streaming lameenc q5: **6.29 s**, 0.184¢ per song (decode 1.20s, separate 3.03s, encode 2.05s)
-- streaming lameenc q5 b16: **6.63 s**, 0.194¢ per song (decode 0.91s, separate 2.95s, encode 2.76s)
-- lameenc q5: **8.26 s**, 0.241¢ per song (decode 0.92s, separate 2.86s, encode 4.48s)
-- lameenc q2: **14.33 s**, 0.419¢ per song (decode 0.92s, separate 2.86s, encode 10.55s)
-- ffmpeg q5: **9.07 s**, 0.265¢ per song (decode 0.97s, separate 2.85s, encode 5.26s)
+- streaming lameenc q5: **5.70 s**, 0.166¢ per song (decode 0.58s, separate 3.25s, encode 1.87s)
+- streaming lameenc q5 b16: **6.23 s**, 0.182¢ per song (decode 0.56s, separate 2.90s, encode 2.76s)
+- lameenc q5: **7.96 s**, 0.232¢ per song (decode 0.55s, separate 2.86s, encode 4.55s)
+- lameenc q2: **13.90 s**, 0.406¢ per song (decode 0.56s, separate 2.85s, encode 10.49s)
+- ffmpeg q5: **8.57 s**, 0.250¢ per song (decode 0.55s, separate 2.85s, encode 5.18s)
 
-### A10 (NVIDIA A10G, 22.1 GiB) — torch 2.11.0+cu130, CUDA 13.0, 245 s song
+### A10 (NVIDIA A10, 22.1 GiB) — torch 2.11.0+cu130, CUDA 13.0, 245 s song
 
 | config | separate (s) | speedup | × realtime | peak VRAM (GiB) | ¢ per audio min | SDR (dB) | cSDR (dB) | vs fp32, same overlap (dB) | first call (s) |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
 
 End to end (decode MP3 → separate → encode 4 MP3s), fp16 ov.10 b8:
 
-- streaming lameenc q5: **4.37 s**, 0.164¢ per song (decode 0.86s, separate 2.00s, encode 1.50s)
-- streaming lameenc q5 b16: **4.61 s**, 0.174¢ per song (decode 0.79s, separate 1.81s, encode 2.00s)
-- lameenc q5: **5.82 s**, 0.219¢ per song (decode 0.82s, separate 1.90s, encode 3.10s)
-- lameenc q2: **10.26 s**, 0.386¢ per song (decode 0.89s, separate 1.87s, encode 7.50s)
-- ffmpeg q5: **6.78 s**, 0.255¢ per song (decode 0.87s, separate 1.90s, encode 4.01s)
+- streaming lameenc q5: **3.97 s**, 0.149¢ per song (decode 0.42s, separate 2.23s, encode 1.32s)
+- streaming lameenc q5 b16: **4.28 s**, 0.161¢ per song (decode 0.39s, separate 1.93s, encode 1.96s)
+- lameenc q5: **5.60 s**, 0.211¢ per song (decode 0.42s, separate 1.97s, encode 3.20s)
+- lameenc q2: **9.83 s**, 0.370¢ per song (decode 0.43s, separate 1.97s, encode 7.43s)
+- ffmpeg q5: **5.92 s**, 0.223¢ per song (decode 0.40s, separate 1.96s, encode 3.56s)

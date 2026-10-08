@@ -18,43 +18,43 @@
   "rows": [],
   "e2e": {
     "streaming lameenc q5": {
-      "total_s": 6.292,
+      "total_s": 5.698,
       "stages_s": {
-        "decode": 1.1997,
-        "separate": 3.0306,
-        "encode": 2.0548
+        "decode": 0.5762,
+        "separate": 3.2486,
+        "encode": 1.8685
       }
     },
     "streaming lameenc q5 b16": {
-      "total_s": 6.627,
+      "total_s": 6.233,
       "stages_s": {
-        "decode": 0.9145,
-        "separate": 2.9473,
-        "encode": 2.7613
+        "decode": 0.5597,
+        "separate": 2.9011,
+        "encode": 2.7649
       }
     },
     "lameenc q5": {
-      "total_s": 8.259,
+      "total_s": 7.957,
       "stages_s": {
-        "decode": 0.9185,
-        "separate": 2.8625,
-        "encode": 4.4781
+        "decode": 0.5537,
+        "separate": 2.8566,
+        "encode": 4.5464
       }
     },
     "lameenc q2": {
-      "total_s": 14.333,
+      "total_s": 13.901,
       "stages_s": {
-        "decode": 0.9212,
-        "separate": 2.8594,
-        "encode": 10.5519
+        "decode": 0.5561,
+        "separate": 2.8509,
+        "encode": 10.4944
       }
     },
     "ffmpeg q5": {
-      "total_s": 9.075,
+      "total_s": 8.573,
       "stages_s": {
-        "decode": 0.9653,
-        "separate": 2.851,
-        "encode": 5.2588
+        "decode": 0.5465,
+        "separate": 2.845,
+        "encode": 5.1812
       }
     }
   }

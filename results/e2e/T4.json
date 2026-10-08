@@ -17,28 +17,44 @@
   },
   "rows": [],
   "e2e": {
-    "lameenc q5": {
-      "total_s": 8.73,
+    "streaming lameenc q5": {
+      "total_s": 6.577,
       "stages_s": {
-        "decode": 0.7538,
-        "separate": 3.917,
-        "encode": 4.0591
+        "decode": 0.6086,
+        "separate": 4.8079,
+        "encode": 1.1541
+      }
+    },
+    "streaming lameenc q5 b16": {
+      "total_s": 7.395,
+      "stages_s": {
+        "decode": 0.5865,
+        "separate": 4.6075,
+        "encode": 2.1928
+      }
+    },
+    "lameenc q5": {
+      "total_s": 9.969,
+      "stages_s": {
+        "decode": 0.5866,
+        "separate": 4.381,
+        "encode": 5.0007
       }
     },
     "lameenc q2": {
-      "total_s": 13.261,
+      "total_s": 14.646,
       "stages_s": {
-        "decode": 0.7506,
-        "separate": 3.9332,
-        "encode": 8.5766
+        "decode": 0.5751,
+        "separate": 4.3835,
+        "encode": 9.6868
       }
     },
     "ffmpeg q5": {
-      "total_s": 9.739,
+      "total_s": 10.838,
       "stages_s": {
-        "decode": 0.7269,
-        "separate": 3.9416,
-        "encode": 5.0701
+        "decode": 0.5855,
+        "separate": 4.4357,
+        "encode": 5.8166
       }
     }
   }
