@@ -85,13 +85,13 @@ With separation down to ~2 s, the rest of the job mattered more. Each job now lo
 | separate, then encode | 1.89 s + ~3.1 s | 2.1 s, then a 1.4 s tail: encoded while separating |
 | upload to R2 | overlapped with encoding | ~0.6–1.4 s |
 | final webhook | ~0.3 s | ~0.2–0.6 s |
-| **warm job, as the caller sees it** | **~8.1 s** | **~5.9–6.4 s** |
+| **warm job, as the caller sees it** | **~8.1 s** | **~5.0–6.0 s** |
 
 **Encoding while separating.** `separate(wav, sink=...)` hands each stretch of the stems to a sink as soon as no later chunk can change it. `StreamingMP3` feeds those stretches to one LAME encoder per stem. The catch is demucs's clip guard, which scales a whole stem down when its peak would clip, and the peak isn't known until the end. So stems are encoded optimistically and re-encoded whole in the rare case they need it. No stem of 12 full MUSDB songs came within 1% of clipping (`results/peaks.json`), even though every mixture peaked at full scale. Either way the bytes are identical to encoding afterwards. End to end without network that's 5.82 → 4.37 s on an A10 and 8.26 → 6.29 s on an L4 (`results/e2e/`). A small first batch (2 chunks) gets the encoders going sooner.
 
 **Decoding in process.** libsndfile reads MP3, WAV, FLAC and Ogg directly, a third faster than ffmpeg piping 86 MB of samples out, and lands within 3e-6 of ffmpeg's samples. Anything else, or anything that needs resampling, still goes through ffmpeg.
 
-**Cold starts.** A cold container's first separation spent ~1.2 s loading CUDA kernels. A 20 s throwaway separation now runs on a background thread right after restore, alongside the first song's download and decode, which takes most of that cost off the song. In practice GPU memory snapshots were worse: on staging, cold jobs took 19–44 s against 9–25 s with the CPU snapshot, while Modal took fresh snapshots on new hosts.
+**Cold starts.** A cold container's first separation spent ~1.2 s loading CUDA kernels. A 20 s throwaway separation now runs on a background thread right after restore, alongside the first song's download and decode, which takes most of that cost off the song. Two more starts were hiding in front of the GPU. Every song goes through stemplayer's small API endpoint before a GPU starts, and a cold one took 3–6 s to answer against ~0.65 s warm. It now stays up 20 minutes after a request, for about 0.2¢. And the Worker now asks for a GPU container as soon as someone picks a song, so it boots while the song uploads. With a 6 s head start, cold jobs took 6.4–8.0 s, about warm speed, against 9–12 s without one. In practice GPU memory snapshots were worse: on staging, cold jobs took 19–44 s against 9–25 s with the CPU snapshot, while Modal took fresh snapshots on new hosts.
 
 What didn't help:
 - **More CPU cores.** 6 or 8 instead of 4 made no difference: each stem's LAME is single-threaded, ~2.4 s for the drums at `-q 5`, and that sets the floor.

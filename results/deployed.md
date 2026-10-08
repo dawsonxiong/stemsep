@@ -28,3 +28,16 @@ After (progress reports in the background, streaming encode, libsndfile decode, 
 `fetch 0.30–0.36, decode 0.55, separate 2.11, encode 1.37, upload 0.63–1.13, report_ready 0.21–0.23`: caller sees 5.3–5.8 s (other runs with slower R2 and webhook responses: 5.9–6.7 s).
 
 Cold jobs (after > scaledown_window idle), separate including the wait for the background warm-up: 2.3–3.0 s (one 4.0 s), against 3.1–3.5 s with no warm-up.
+
+## Third pass: in front of the GPU
+
+The Modal API endpoint the Worker calls, timed with an unauthenticated POST (401):
+- warm: 0.65 s
+- cold: 5.65 s, then 3.2–4.2 s without a memory snapshot
+- cold with a memory snapshot: 2.8–3.1 s, but 7.3 s and 10.4 s when the snapshot was being retaken
+
+stemplayer keeps it warm 20 minutes after each request (`scaledown_window=1200`) and doesn't snapshot it.
+
+Cold GPU jobs preceded by a `/warm` call 6 s earlier (standing in for the upload), after > scaledown_window idle: 7.96 s and 6.38 s seen by the caller, plus 20.71 s for the first cold start after a deploy, which took the snapshot. Without the head start: 9.4–12 s.
+
+Final warm jobs on staging: 4.95, 5.15, 5.35, 5.97 s.
