@@ -1,0 +1,23 @@
+{
+  "cpu": 4.0,
+  "os_cpus": 20,
+  "affinity": 20,
+  "lameenc 1 stem q2": 4.35,
+  "lameenc 1 stem q5": 2.72,
+  "lameenc 1 stem q7": 1.49,
+  "lameenc snr q2": 25.14,
+  "lameenc snr q5": 25.13,
+  "lameenc snr q7": 27.47,
+  "lameenc 4 threads q2": 5.69,
+  "lameenc 4 threads q5": 3.4,
+  "ffmpeg 1 stem q2": 7.03,
+  "snr q2": 25.66,
+  "ffmpeg 1 stem q5": 4.06,
+  "snr q5": 25.86,
+  "ffmpeg 1 stem q7": 2.8,
+  "snr q7": 27.79,
+  "ffmpeg 4 parallel q2 f32le": 8.59,
+  "ffmpeg 4 parallel q2 s16le": 8.62,
+  "ffmpeg 4 parallel q5 f32le": 5.04,
+  "ffmpeg 4 parallel q5 s16le": 4.51
+}

@@ -186,7 +186,12 @@ class Bench:
         sep = Separator("htdemucs", Config(overlap=0.10, batch_size=8, precision="fp16"))
         sep.separate(self.mixture[:, : 44100 * 20])
         out = {}
-        for encoder in ("ffmpeg", "lameenc"):
+        variants = {
+            "lameenc q5": (audio.encode_mp3, 5),
+            "lameenc q2": (audio.encode_mp3, 2),
+            "ffmpeg q5": (audio.encode_mp3_ffmpeg, 5),
+        }
+        for encoder, (fn, quality) in variants.items():
             prof = Profiler("cuda")
             with tempfile.TemporaryDirectory() as tmp:
                 t0 = time.perf_counter()
@@ -199,7 +204,8 @@ class Bench:
                         stems,
                         {s: os.path.join(tmp, f"{s}.mp3") for s in stems},
                         sep.samplerate,
-                        encoder=audio.encode_mp3 if encoder == "ffmpeg" else audio.encode_mp3_lameenc,
+                        quality=quality,
+                        encoder=fn,
                     )
                 total = time.perf_counter() - t0
             out[encoder] = {"total_s": round(total, 3), "stages_s": prof.as_dict()}

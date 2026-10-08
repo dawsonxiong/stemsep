@@ -9,8 +9,21 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "demucs==4.0.1",
+    "lameenc>=1.8",
     "numpy>=2.4.6",
     "torch>=2.3",
+]
+
+[project.optional-dependencies]
+onnx = [
+    "onnx>=1.18",
+    "onnxruntime>=1.22",
+    "onnxscript>=0.5",
+]
+onnx-gpu = [
+    "onnx>=1.18",
+    "onnxruntime-gpu[cuda,cudnn]>=1.30 ; sys_platform == 'linux'",
+    "onnxscript>=0.5",
 ]
 
 [build-system]
@@ -25,3 +38,6 @@ dev = [
     "onnxscript>=0.7.2",
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+markers = ["slow: exports or runs a whole model (deselect with -m 'not slow')"]
