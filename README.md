@@ -49,7 +49,15 @@ Measured against the plan's priorities.
 
 **Chunk overlap (P0).** 25% → 10% runs 20% fewer chunks for −0.01 dB. 5% saves only another ~5% and costs a measurable −0.06 dB.
 
-**Persistent model loading and cold starts (P0).** The model already loaded once per container from a memory snapshot. The surprise was cuDNN autotuning: `cudnn.benchmark` added ~12 s to a fresh container's first song and saved ~2% after, so it's off. Modal's GPU memory snapshot (alpha), which restores the model on the GPU already warmed up, is measured in `results/coldstart.json`.
+**Persistent model loading and cold starts (P0).** The model already loaded once per container from a memory snapshot. The surprise was cuDNN autotuning: `cudnn.benchmark` added ~12 s to a fresh container's first song and saved ~2% after, so it's off. Cold start on an L4, from the request to a 10 s separation's result (median of 8, `results/coldstart.json`):
+
+| | median | first call in the container |
+|---|--:|--:|
+| no snapshot | 11.5 s | 1.5 s |
+| CPU memory snapshot (stemplayer's) | 8.6 s | 1.7 s |
+| GPU memory snapshot (Modal alpha) | 6.8 s | 0.4 s |
+
+The GPU snapshot restores the model already on the GPU and warmed up. It's the obvious next step, but it's alpha, so stemplayer keeps the CPU snapshot for now. Both kinds occasionally take 20–140 s while Modal takes a fresh snapshot on a new host. End to end, a cold job on staging took 17–20 s against 29–33 s for the old code.
 
 **GPU type (P0).** Compared on cost per completed song, not raw speed. Separation is cheapest on the A10, and A10 hosts also have faster CPUs, which now matters more than the GPU: end to end it's 5.8 s on an A10 against 8.9 s on an L4 and 8.7 s on a T4, at 0.23–0.28¢ per song for all three (`results/e2e/`).
 
