@@ -1,0 +1,33 @@
+{
+  "gpu": "T4",
+  "CpuSnapshot": {
+    "samples": [
+      {
+        "total_s": 19.02,
+        "until_ready_s": 16.82,
+        "enter_s": 0.573,
+        "first_call_s": 2.065
+      },
+      {
+        "total_s": 9.41,
+        "until_ready_s": 6.86,
+        "enter_s": 0.471,
+        "first_call_s": 2.153
+      },
+      {
+        "total_s": 94.23,
+        "until_ready_s": 92.38,
+        "enter_s": 0.459,
+        "first_call_s": 1.694
+      },
+      {
+        "total_s": 15.95,
+        "until_ready_s": 14.34,
+        "enter_s": 0.363,
+        "first_call_s": 1.388
+      }
+    ],
+    "median_total_s": 17.485,
+    "median_until_ready_s": 15.58
+  }
+}

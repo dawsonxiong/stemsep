@@ -60,9 +60,9 @@ def run(cpu: float, page: str) -> dict:
 
     default_threads = torch.get_num_threads()
     out["torch threads by default"] = default_threads
-    for threads in (default_threads, 4, 2, default_threads):
+    for threads in (default_threads, 2, 1, default_threads):
         torch.set_num_threads(threads)
-        enc = StreamingMP3(sep.sources, 44100, 2)
+        enc = StreamingMP3(sep.sources, 44100, 2, gain=0.5)
         t = time.perf_counter()
         result = sep.separate(wav, sink=enc.feed)
         torch.cuda.synchronize()
