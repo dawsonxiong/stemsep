@@ -40,6 +40,9 @@ class Config:
     # Pad the last batch up to batch_size, so a compiled or exported network
     # only ever sees one shape.
     static_batch: bool | None = None
+    # Let cuDNN time its convolution algorithms on the first batch and keep
+    # the fastest. Chunks are all one shape, so it only pays that once.
+    cudnn_benchmark: bool = True
 
     def __post_init__(self):
         if not 0 <= self.overlap < 1:
@@ -89,6 +92,8 @@ class Separator:
         self.samplerate: int = self.bag.samplerate
         self.audio_channels: int = self.bag.audio_channels
         self._cores: list = []
+        if self.config.cudnn_benchmark:
+            torch.backends.cudnn.benchmark = True
         self.to(self.device)
 
     # ---- setup -----------------------------------------------------------

@@ -5,3 +5,4 @@ __pycache__/
 /results/raw/
 *.onnx
 /scratch/
+scratch-*.log
