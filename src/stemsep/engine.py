@@ -49,12 +49,14 @@ class Config:
     # that added ~12 s to a fresh container's first song and saved ~2% after,
     # so it's off unless containers live long or snapshot the GPU.
     cudnn_benchmark: bool = False
+    # Chunks in the first batch when separate() is given a sink.
+    first_batch: int = 2
 
     def __post_init__(self):
         if not 0 <= self.overlap < 1:
             raise ValueError("overlap must be in [0, 1)")
-        if self.batch_size < 1:
-            raise ValueError("batch_size must be at least 1")
+        if self.batch_size < 1 or self.first_batch < 1:
+            raise ValueError("batch_size and first_batch must be at least 1")
         if self.static_batch is None:
             self.static_batch = self.backend != "eager"
 
@@ -259,8 +261,20 @@ class Separator:
         weight = window(seg, self.device)
         emitted = 0
 
-        for start in range(0, len(offsets), cfg.batch_size):
-            batch = chunks[start : start + cfg.batch_size]
+        # When streaming, a small first batch gets the encoders going sooner;
+        # they're slower than the GPU, so they set the pace from then on.
+        sizes = []
+        remaining = len(offsets)
+        if emit is not None and not cfg.static_batch and remaining > cfg.first_batch:
+            sizes.append(cfg.first_batch)
+            remaining -= cfg.first_batch
+        sizes += [cfg.batch_size] * (remaining // cfg.batch_size)
+        if remaining % cfg.batch_size:
+            sizes.append(remaining % cfg.batch_size)
+        starts = [sum(sizes[:i]) for i in range(len(sizes))]
+
+        for start, size in zip(starts, sizes):
+            batch = chunks[start : start + size]
             n = batch.shape[0]
             if cfg.static_batch and n < cfg.batch_size:
                 fill = batch.new_zeros(cfg.batch_size - n, *batch.shape[1:])

@@ -287,3 +287,39 @@ def test_encode_mp3_rescales_and_keeps_shape(tmp_path):
     peaks = back.abs().amax(-1)
     assert 0.9 < peaks[0] < 1.05
     assert abs(peaks[1] / peaks[0] - 0.5) < 0.02
+
+
+@needs_ffmpeg
+def test_decode_paths_agree(tmp_path):
+    """MP3 at 44.1 kHz is read by libsndfile; it matches ffmpeg's decode."""
+    import subprocess
+
+    from stemsep.audio import _read_ffmpeg, decode
+
+    path = tmp_path / "tone.mp3"
+    subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "sine=f=440:d=3",
+         "-ac", "2", "-ar", str(SR), "-b:a", "192k", str(path)],
+        check=True,
+    )  # fmt: skip
+    ours = decode(str(path), SR, 2)
+    theirs = torch.from_numpy(_read_ffmpeg(str(path), SR).T.copy())
+    assert ours.shape == theirs.shape
+    assert (ours - theirs).abs().max() < 1e-4
+
+
+@needs_ffmpeg
+def test_decode_resamples_through_ffmpeg(tmp_path):
+    import subprocess
+
+    from stemsep.audio import decode
+
+    path = tmp_path / "tone48k.wav"
+    subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "sine=f=440:d=2",
+         "-ar", "48000", str(path)],
+        check=True,
+    )  # fmt: skip
+    wav = decode(str(path), SR, 2)
+    assert wav.shape[0] == 2
+    assert abs(wav.shape[1] - 2 * SR) < 100

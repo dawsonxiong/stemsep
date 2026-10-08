@@ -11,6 +11,7 @@ dependencies = [
     "demucs==4.0.1",
     "lameenc>=1.8",
     "numpy>=2.4.6",
+    "soundfile>=0.13",
     "torch>=2.3",
 ]
 
