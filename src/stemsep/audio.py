@@ -6,6 +6,7 @@ I/O backends, and encoders in separate processes really do run side by side.
 
 from __future__ import annotations
 
+import math
 import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
@@ -167,7 +168,12 @@ def _lame(samplerate: int, channels: int, bitrate: int, quality: int):
 def stored_gain(peak: float, gain: float = 1.0) -> float:
     """What a stem with this peak ends up scaled by, stored at `gain`: the
     gain itself, or less where `_rescale` turns it down further to keep it
-    from clipping. Playing it back at 1 / this restores its level."""
+    from clipping. Playing it back at 1 / this restores its level.
+
+    A stem with a NaN in it, as from a float WAV that has one, reports
+    `gain`: NaN isn't valid JSON, and a report carrying it never gets sent."""
+    if math.isnan(peak):
+        return gain
     return gain / max(1.01 * peak * gain, 1.0)
 
 

@@ -177,3 +177,18 @@ def test_stored_gain_is_undone_exactly():
         back = decode(f.name) / enc.gains[name]
         os.unlink(f.name)
         assert abs(back.abs().max().item() - peak) < 0.05 * peak
+
+
+def test_a_nan_in_a_loud_stem_still_reports_a_gain():
+    """The gains go out as JSON, which has no NaN: a report with one is never
+    sent, and the song never shows as ready."""
+    import json
+
+    t = torch.arange(2 * SR) / SR
+    wav = torch.stack([2.4 * torch.sin(2 * torch.pi * 220 * t)] * 2)
+    wav[0, 0] = float("nan")
+    enc = StreamingMP3(["a"], SR, 2, gain=0.5)
+    for a in range(0, 2 * SR, SR):
+        enc.feed({"a": wav[:, a : a + SR]})
+    enc.finish({"a": wav})
+    json.dumps(enc.gains, allow_nan=False)

@@ -51,6 +51,10 @@ class Config:
     cudnn_benchmark: bool = False
     # Chunks in the first batch when separate() is given a sink.
     first_batch: int = 2
+    # Normalize the whole song before cutting it into chunks, as demucs's CLI
+    # does. Each chunk is normalized again inside the model, so this barely
+    # changes the result; turning it off means no step needs the whole song.
+    normalize: bool = True
 
     def __post_init__(self):
         if not 0 <= self.overlap < 1:
@@ -187,10 +191,13 @@ class Separator:
             # by the std alone, which is 0 for silence or channels that
             # cancel (and NaN for one sample), and every stem comes out NaN.
             # Undoing with the same `scale` keeps the round trip exact.
-            ref = wav.mean(0)
-            mean = ref.mean()
-            scale = (ref.std() if ref.numel() > 1 else ref.new_zeros(())) + 1e-8
-            wav = (wav - mean) / scale
+            if self.config.normalize:
+                ref = wav.mean(0)
+                mean = ref.mean()
+                scale = (ref.std() if ref.numel() > 1 else ref.new_zeros(())) + 1e-8
+                wav = (wav - mean) / scale
+            else:
+                mean, scale = wav.new_zeros(()), wav.new_ones(())
 
         plan = self._plan(wanted)
         total_chunks = sum(len(self._offsets(wav.shape[-1], self.bag.models[i])) for i, _ in plan)
