@@ -38,6 +38,8 @@ class Config:
     compile_mode: str = "max-autotune-no-cudagraphs"
     # Path to an exported ONNX file per sub-model, for backend="onnx".
     onnx_paths: Sequence[str] = field(default_factory=tuple)
+    # Passed to OnnxCore: cuda_graph, tensorrt, and provider options.
+    onnx_options: dict = field(default_factory=dict)
     # Pad the last batch up to batch_size, so a compiled or exported network
     # only ever sees one shape.
     static_batch: bool | None = None
@@ -121,7 +123,9 @@ class Separator:
 
             if index >= len(cfg.onnx_paths):
                 raise ValueError("backend='onnx' needs an onnx_paths entry per sub-model")
-            return OnnxCore(cfg.onnx_paths[index], self.device, cfg.precision)
+            return OnnxCore(
+                cfg.onnx_paths[index], self.device, cfg.precision, **cfg.onnx_options
+            )
         raise ValueError(f"unknown backend {cfg.backend!r}")
 
     def _autocast(self):

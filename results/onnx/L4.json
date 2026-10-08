@@ -1,0 +1,261 @@
+{
+  "env": {
+    "gpu": "L4",
+    "device": "NVIDIA L4",
+    "vram_gib": 22.0,
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "cudnn": 91900,
+    "onnxruntime": "1.30.0",
+    "ort_providers": [
+      "TensorrtExecutionProvider",
+      "CUDAExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "audio_seconds": 244.92
+  },
+  "exports": {
+    "htdemucs_b4_fp32.onnx": {
+      "cached": true,
+      "mb": 170.7
+    },
+    "htdemucs_b4_fp16.onnx": {
+      "cached": true,
+      "mb": 86.5
+    },
+    "htdemucs_b8_fp32.onnx": {
+      "cached": true,
+      "mb": 170.7
+    },
+    "htdemucs_b8_fp16.onnx": {
+      "cached": true,
+      "mb": 86.5
+    }
+  },
+  "core_diffs": {
+    "eager fp16 (autocast)": {
+      "x": {
+        "max_abs": 0.09429931640625,
+        "rel_to_peak": 0.0010961981259269126,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 0.016344815492630005,
+        "rel_to_peak": 0.003364304788821862,
+        "finite": true
+      }
+    },
+    "onnx fp32": {
+      "x": {
+        "max_abs": 8.487701416015625e-05,
+        "rel_to_peak": 9.866670025029857e-07,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 2.536177635192871e-05,
+        "rel_to_peak": 5.220294207193489e-06,
+        "finite": true
+      }
+    },
+    "onnx fp16": {
+      "x": {
+        "max_abs": 0.3255176842212677,
+        "rel_to_peak": 0.0037840345932324488,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 0.05368313193321228,
+        "rel_to_peak": 0.011049767917129357,
+        "finite": true
+      }
+    }
+  },
+  "rows": [
+    {
+      "name": "eager fp16 b8",
+      "load_s": 0.51,
+      "first_call_s": 0.47,
+      "separate_s": 2.848,
+      "separate_runs_s": [
+        2.848,
+        2.887,
+        2.844
+      ],
+      "realtime_x": 86.0,
+      "vram_peak_device_gib": 5.44,
+      "vram_peak_delta_gib": 4.91,
+      "stages_s": {
+        "to_device": 0.0209,
+        "chunk": 0.001,
+        "stft": 0.0266,
+        "network": 2.4471,
+        "istft": 0.1741,
+        "overlap_add": 0.0063,
+        "to_host": 0.1634
+      },
+      "sdr": 6.921,
+      "nonfinite": false
+    },
+    {
+      "name": "onnx fp32 b8",
+      "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 336.00 MiB. GPU 0 has a total capacity of 22.03 GiB of which 338.12 MiB is free. Process 1 has 21.69 GiB memory in use. Of the allocated memory 864.15 MiB is allocated by PyTorch, and 11.85 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 119, in bench\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 231, in measure\n    sep.separate(mixture[:, : sr * 20])\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 246, in _separate_one\n    result = htd.post(sub, spec, x, xt)[:n]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/model.py\", line 82, in post\n    x = x.float().view(B, S, -1, Fq, T) * spec.std[:, None] + spec.mean[:, None]\n        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 336.00 MiB. GPU 0 has a total capacity of 22.03 GiB of which 338.12 MiB is free. Process 1 has 21.69 GiB memory in use. Of the allocated memory 864.15 MiB is allocated by PyTorch, and 11.85 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\n"
+    },
+    {
+      "name": "onnx fp16 b4",
+      "load_s": 0.98,
+      "first_call_s": 0.57,
+      "separate_s": 3.07,
+      "separate_runs_s": [
+        3.053,
+        3.07,
+        3.072
+      ],
+      "realtime_x": 79.8,
+      "vram_peak_device_gib": 8.66,
+      "vram_peak_delta_gib": 8.14,
+      "stages_s": {
+        "to_device": 0.0231,
+        "chunk": 0.001,
+        "stft": 0.026,
+        "network": 2.6654,
+        "istft": 0.169,
+        "overlap_add": 0.0069,
+        "to_host": 0.1717
+      },
+      "sdr": 6.915,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.75
+    },
+    {
+      "name": "onnx fp16 b8",
+      "load_s": 0.98,
+      "first_call_s": 0.75,
+      "separate_s": 3.554,
+      "separate_runs_s": [
+        3.539,
+        3.587,
+        3.554
+      ],
+      "realtime_x": 68.9,
+      "vram_peak_device_gib": 14.96,
+      "vram_peak_delta_gib": 14.43,
+      "stages_s": {
+        "to_device": 0.0231,
+        "chunk": 0.001,
+        "stft": 0.0315,
+        "network": 3.0343,
+        "istft": 0.1856,
+        "overlap_add": 0.0064,
+        "to_host": 0.3253
+      },
+      "sdr": 6.915,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.65
+    },
+    {
+      "name": "onnx fp16 b8 graph",
+      "load_s": 3.49,
+      "first_call_s": 0.67,
+      "separate_s": 3.653,
+      "separate_runs_s": [
+        3.653,
+        3.653,
+        3.653
+      ],
+      "realtime_x": 67.0,
+      "vram_peak_device_gib": 15.07,
+      "vram_peak_delta_gib": 14.55,
+      "stages_s": {
+        "to_device": 0.0155,
+        "chunk": 0.001,
+        "stft": 0.0311,
+        "network": 3.0518,
+        "istft": 0.1857,
+        "overlap_add": 0.0063,
+        "to_host": 0.3266
+      },
+      "sdr": 6.915,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.65
+    },
+    {
+      "name": "onnx fp16 b8 heuristic",
+      "load_s": 0.97,
+      "first_call_s": 0.75,
+      "separate_s": 3.618,
+      "separate_runs_s": [
+        3.634,
+        3.618,
+        3.6
+      ],
+      "realtime_x": 67.7,
+      "vram_peak_device_gib": 14.97,
+      "vram_peak_delta_gib": 14.43,
+      "stages_s": {
+        "to_device": 0.016,
+        "chunk": 0.001,
+        "stft": 0.0319,
+        "network": 3.065,
+        "istft": 0.1856,
+        "overlap_add": 0.0064,
+        "to_host": 0.159
+      },
+      "sdr": 6.915,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.65
+    },
+    {
+      "name": "onnx fp16 b8 nhwc",
+      "load_s": 1.01,
+      "first_call_s": 0.8,
+      "separate_s": 3.53,
+      "separate_runs_s": [
+        3.53,
+        3.612,
+        3.529
+      ],
+      "realtime_x": 69.4,
+      "vram_peak_device_gib": 15.69,
+      "vram_peak_delta_gib": 15.15,
+      "stages_s": {
+        "to_device": 0.0152,
+        "chunk": 0.001,
+        "stft": 0.0309,
+        "network": 3.1245,
+        "istft": 0.1857,
+        "overlap_add": 0.0064,
+        "to_host": 0.1645
+      },
+      "sdr": 6.915,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.36
+    },
+    {
+      "name": "onnx fp16 b8 pad_nc1d",
+      "load_s": 0.94,
+      "first_call_s": 0.74,
+      "separate_s": 3.446,
+      "separate_runs_s": [
+        3.452,
+        3.446,
+        3.44
+      ],
+      "realtime_x": 71.1,
+      "vram_peak_device_gib": 14.97,
+      "vram_peak_delta_gib": 14.43,
+      "stages_s": {
+        "to_device": 0.016,
+        "chunk": 0.0011,
+        "stft": 0.0314,
+        "network": 3.0394,
+        "istft": 0.1855,
+        "overlap_add": 0.0064,
+        "to_host": 0.1662
+      },
+      "sdr": 6.915,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.68
+    }
+  ]
+}

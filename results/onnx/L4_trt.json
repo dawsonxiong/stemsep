@@ -1,0 +1,204 @@
+{
+  "env": {
+    "gpu": "L4",
+    "device": "NVIDIA L4",
+    "vram_gib": 22.0,
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "cudnn": 91900,
+    "onnxruntime": "1.30.0",
+    "ort_providers": [
+      "TensorrtExecutionProvider",
+      "CUDAExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "audio_seconds": 244.92
+  },
+  "exports": {
+    "htdemucs_b4_fp32.onnx": {
+      "cached": true,
+      "mb": 170.7
+    },
+    "htdemucs_b4_fp16.onnx": {
+      "cached": true,
+      "mb": 86.5
+    },
+    "htdemucs_b8_fp32.onnx": {
+      "cached": true,
+      "mb": 170.7
+    },
+    "htdemucs_b8_fp16.onnx": {
+      "cached": true,
+      "mb": 86.5
+    }
+  },
+  "core_diffs": {
+    "eager fp16 (autocast)": {
+      "x": {
+        "max_abs": 0.0866546630859375,
+        "rel_to_peak": 0.001007329434684025,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 0.011976927518844604,
+        "rel_to_peak": 0.002569541737062618,
+        "finite": true
+      }
+    },
+    "onnx fp32": {
+      "x": {
+        "max_abs": 0.00015926361083984375,
+        "rel_to_peak": 1.851382457213332e-06,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 2.2113323211669922e-05,
+        "rel_to_peak": 4.7442139770937585e-06,
+        "finite": true
+      }
+    },
+    "onnx fp16": {
+      "x": {
+        "max_abs": 0.37409543991088867,
+        "rel_to_peak": 0.004348725557095394,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 0.07052493095397949,
+        "rel_to_peak": 0.015130487623355957,
+        "finite": true
+      }
+    }
+  },
+  "rows": [
+    {
+      "name": "eager fp16 b8",
+      "load_s": 0.64,
+      "first_call_s": 0.5,
+      "separate_s": 2.865,
+      "separate_runs_s": [
+        2.847,
+        2.865,
+        2.874
+      ],
+      "realtime_x": 85.5,
+      "vram_peak_device_gib": 5.65,
+      "vram_peak_delta_gib": 5.26,
+      "stages_s": {
+        "to_device": 0.0163,
+        "chunk": 0.001,
+        "stft": 0.0314,
+        "network": 2.4404,
+        "istft": 0.1749,
+        "overlap_add": 0.0064,
+        "to_host": 0.1786
+      },
+      "sdr": 6.921,
+      "nonfinite": false
+    },
+    {
+      "name": "trt fp16 b4",
+      "load_s": 5.12,
+      "first_call_s": 0.17,
+      "separate_s": 1.518,
+      "separate_runs_s": [
+        1.495,
+        1.568,
+        1.518
+      ],
+      "realtime_x": 161.3,
+      "vram_peak_device_gib": 4.34,
+      "vram_peak_delta_gib": 3.94,
+      "stages_s": {
+        "to_device": 0.0161,
+        "chunk": 0.001,
+        "stft": 0.027,
+        "network": 1.1014,
+        "istft": 0.1697,
+        "overlap_add": 0.0071,
+        "to_host": 0.1748
+      },
+      "sdr": 6.919,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 50.68
+    },
+    {
+      "name": "trt fp16 b8",
+      "load_s": 3.83,
+      "first_call_s": 0.32,
+      "separate_s": 1.746,
+      "separate_runs_s": [
+        1.746,
+        1.747,
+        1.746
+      ],
+      "realtime_x": 140.3,
+      "vram_peak_device_gib": 6.1,
+      "vram_peak_delta_gib": 5.7,
+      "stages_s": {
+        "to_device": 0.0209,
+        "chunk": 0.001,
+        "stft": 0.0319,
+        "network": 1.3283,
+        "istft": 0.1862,
+        "overlap_add": 0.0064,
+        "to_host": 0.1601
+      },
+      "sdr": 6.92,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 50.05
+    },
+    {
+      "name": "trt fp16 b4 graph",
+      "load_s": 3.28,
+      "first_call_s": 0.16,
+      "separate_s": 1.5,
+      "separate_runs_s": [
+        1.5,
+        1.513,
+        1.495
+      ],
+      "realtime_x": 163.3,
+      "vram_peak_device_gib": 4.39,
+      "vram_peak_delta_gib": 3.98,
+      "stages_s": {
+        "to_device": 0.016,
+        "chunk": 0.001,
+        "stft": 0.0277,
+        "network": 1.0995,
+        "istft": 0.1694,
+        "overlap_add": 0.0071,
+        "to_host": 0.162
+      },
+      "sdr": 6.919,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 50.68
+    },
+    {
+      "name": "trt fp16 b8 graph",
+      "load_s": 4.69,
+      "first_call_s": 0.34,
+      "separate_s": 1.753,
+      "separate_runs_s": [
+        1.762,
+        1.747,
+        1.753
+      ],
+      "realtime_x": 139.7,
+      "vram_peak_device_gib": 6.21,
+      "vram_peak_delta_gib": 5.8,
+      "stages_s": {
+        "to_device": 0.0156,
+        "chunk": 0.001,
+        "stft": 0.0313,
+        "network": 1.3327,
+        "istft": 0.1865,
+        "overlap_add": 0.0064,
+        "to_host": 0.1712
+      },
+      "sdr": 6.92,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 50.05
+    }
+  ]
+}

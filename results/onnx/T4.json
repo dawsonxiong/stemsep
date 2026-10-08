@@ -1,0 +1,156 @@
+{
+  "env": {
+    "gpu": "T4",
+    "device": "Tesla T4",
+    "vram_gib": 14.6,
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "cudnn": 91900,
+    "onnxruntime": "1.30.0",
+    "ort_providers": [
+      "TensorrtExecutionProvider",
+      "CUDAExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "audio_seconds": 244.92
+  },
+  "exports": {
+    "htdemucs_b4_fp32.onnx": {
+      "cached": true,
+      "mb": 170.7
+    },
+    "htdemucs_b4_fp16.onnx": {
+      "cached": true,
+      "mb": 86.5
+    },
+    "htdemucs_b8_fp32.onnx": {
+      "cached": true,
+      "mb": 170.7
+    },
+    "htdemucs_b8_fp16.onnx": {
+      "cached": true,
+      "mb": 86.5
+    }
+  },
+  "core_diffs": {
+    "eager fp16 (autocast)": {
+      "x": {
+        "max_abs": 0.0946044921875,
+        "rel_to_peak": 0.0010997432542946082,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 0.0105668306350708,
+        "rel_to_peak": 0.0022670179413622374,
+        "finite": true
+      }
+    },
+    "onnx fp32": {
+      "x": {
+        "max_abs": 0.000148773193359375,
+        "rel_to_peak": 1.729434956350392e-06,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 1.990795135498047e-05,
+        "rel_to_peak": 4.271070906324315e-06,
+        "finite": true
+      }
+    },
+    "onnx fp16": {
+      "x": {
+        "max_abs": 0.34470176696777344,
+        "rel_to_peak": 0.004007034277134768,
+        "finite": true
+      },
+      "xt": {
+        "max_abs": 0.05801835656166077,
+        "rel_to_peak": 0.012447313654966626,
+        "finite": true
+      }
+    }
+  },
+  "rows": [
+    {
+      "name": "eager fp16 b8",
+      "load_s": 0.56,
+      "first_call_s": 0.58,
+      "separate_s": 3.883,
+      "separate_runs_s": [
+        3.885,
+        3.883,
+        3.876
+      ],
+      "realtime_x": 63.1,
+      "vram_peak_device_gib": 5.55,
+      "vram_peak_delta_gib": 5.26,
+      "stages_s": {
+        "to_device": 0.0166,
+        "chunk": 0.001,
+        "stft": 0.0319,
+        "network": 3.487,
+        "istft": 0.1819,
+        "overlap_add": 0.0104,
+        "to_host": 0.1516
+      },
+      "sdr": 6.932,
+      "nonfinite": false
+    },
+    {
+      "name": "onnx fp32 b8",
+      "error": "RuntimeError(\"Error in execution: Non-zero status code returned while running FusedMatMul node. Name:'node_MatMul_1156/MatMulScaleFusion//MatmulTransposeFusion/' Status Message: /onnxruntime_src/onnxruntime/core/framework/bfc_arena.cc:360 void* onnxruntime::BFCArena::AllocateRawInternal(size_t, bool, onnxruntime::Stream*) Failed to allocate memory for requested buffer of size 1849688064\\n\")",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 153, in run\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 271, in measure\n    sep.separate(mixture[:, : sr * 20])\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 244, in _separate_one\n    x, xt = core(spec.x, spec.xt)\n            ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/onnx_backend.py\", line 235, in __call__\n    self.session.run_with_iobinding(self.binding, self.run_options)\n  File \"/usr/local/lib/python3.11/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py\", line 578, in run_with_iobinding\n    self._sess.run_with_iobinding(iobinding._iobinding, run_options)\nRuntimeError: Error in execution: Non-zero status code returned while running FusedMatMul node. Name:'node_MatMul_1156/MatMulScaleFusion//MatmulTransposeFusion/' Status Message: /onnxruntime_src/onnxruntime/core/framework/bfc_arena.cc:360 void* onnxruntime::BFCArena::AllocateRawInternal(size_t, bool, onnxruntime::Stream*) Failed to allocate memory for requested buffer of size 1849688064\n\n"
+    },
+    {
+      "name": "onnx fp16 b4",
+      "load_s": 1.02,
+      "first_call_s": 1.0,
+      "separate_s": 4.352,
+      "separate_runs_s": [
+        4.356,
+        4.352,
+        4.347
+      ],
+      "realtime_x": 56.3,
+      "vram_peak_device_gib": 8.71,
+      "vram_peak_delta_gib": 8.42,
+      "stages_s": {
+        "to_device": 0.0227,
+        "chunk": 0.001,
+        "stft": 0.0362,
+        "network": 3.9639,
+        "istft": 0.1743,
+        "overlap_add": 0.0105,
+        "to_host": 0.1502
+      },
+      "sdr": 6.927,
+      "nonfinite": false,
+      "sdr_vs_eager_fp16": 45.73
+    },
+    {
+      "name": "onnx fp16 b8",
+      "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 221.31 MiB is free. Process 1 has 14.35 GiB memory in use. Of the allocated memory 2.74 GiB is allocated by PyTorch, and 545.59 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 153, in run\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 280, in measure\n    estimate = sep.separate(mixture)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 246, in _separate_one\n    result = htd.post(sub, spec, x, xt)[:n]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/model.py\", line 86, in post\n    x = model._ispec(zout, length).to(spec.xt.device)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/htdemucs.py\", line 448, in _ispec\n    x = ispectro(z, hl, length=le)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/spec.py\", line 38, in ispectro\n    x = th.istft(z,\n        ^^^^^^^^^^^\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 221.31 MiB is free. Process 1 has 14.35 GiB memory in use. Of the allocated memory 2.74 GiB is allocated by PyTorch, and 545.59 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\n"
+    },
+    {
+      "name": "onnx fp16 b8 graph",
+      "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 211.31 MiB is free. Process 1 has 14.36 GiB memory in use. Of the allocated memory 2.84 GiB is allocated by PyTorch, and 441.58 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 153, in run\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 280, in measure\n    estimate = sep.separate(mixture)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 246, in _separate_one\n    result = htd.post(sub, spec, x, xt)[:n]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/model.py\", line 86, in post\n    x = model._ispec(zout, length).to(spec.xt.device)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/htdemucs.py\", line 448, in _ispec\n    x = ispectro(z, hl, length=le)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/spec.py\", line 38, in ispectro\n    x = th.istft(z,\n        ^^^^^^^^^^^\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 211.31 MiB is free. Process 1 has 14.36 GiB memory in use. Of the allocated memory 2.84 GiB is allocated by PyTorch, and 441.58 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\n"
+    },
+    {
+      "name": "onnx fp16 b8 heuristic",
+      "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 221.31 MiB is free. Process 1 has 14.35 GiB memory in use. Of the allocated memory 2.74 GiB is allocated by PyTorch, and 545.59 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 153, in run\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 280, in measure\n    estimate = sep.separate(mixture)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 246, in _separate_one\n    result = htd.post(sub, spec, x, xt)[:n]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/model.py\", line 86, in post\n    x = model._ispec(zout, length).to(spec.xt.device)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/htdemucs.py\", line 448, in _ispec\n    x = ispectro(z, hl, length=le)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/spec.py\", line 38, in ispectro\n    x = th.istft(z,\n        ^^^^^^^^^^^\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 221.31 MiB is free. Process 1 has 14.35 GiB memory in use. Of the allocated memory 2.74 GiB is allocated by PyTorch, and 545.59 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\n"
+    },
+    {
+      "name": "onnx fp16 b8 nhwc",
+      "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 25.31 MiB is free. Process 1 has 14.54 GiB memory in use. Of the allocated memory 2.66 GiB is allocated by PyTorch, and 124.14 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 153, in run\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 280, in measure\n    estimate = sep.separate(mixture)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 246, in _separate_one\n    result = htd.post(sub, spec, x, xt)[:n]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/model.py\", line 86, in post\n    x = model._ispec(zout, length).to(spec.xt.device)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/htdemucs.py\", line 448, in _ispec\n    x = ispectro(z, hl, length=le)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/spec.py\", line 38, in ispectro\n    x = th.istft(z,\n        ^^^^^^^^^^^\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 25.31 MiB is free. Process 1 has 14.54 GiB memory in use. Of the allocated memory 2.66 GiB is allocated by PyTorch, and 124.14 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\n"
+    },
+    {
+      "name": "onnx fp16 b8 pad_nc1d",
+      "error": "OutOfMemoryError('CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 281.31 MiB is free. Process 1 has 14.29 GiB memory in use. Of the allocated memory 2.74 GiB is allocated by PyTorch, and 440.57 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)')",
+      "trace": "Traceback (most recent call last):\n  File \"/root/onnx_gpu.py\", line 153, in run\n    row, estimate = measure(cfg, mixture, stems, sr, duration, reference)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/onnx_gpu.py\", line 280, in measure\n    estimate = sep.separate(mixture)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 193, in separate\n    out = self._separate_one(self.bag.models[index], self._cores[index], wav, prof, tick)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/engine.py\", line 246, in _separate_one\n    result = htd.post(sub, spec, x, xt)[:n]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/stemsep/model.py\", line 86, in post\n    x = model._ispec(zout, length).to(spec.xt.device)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/htdemucs.py\", line 448, in _ispec\n    x = ispectro(z, hl, length=le)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/demucs/spec.py\", line 38, in ispectro\n    x = th.istft(z,\n        ^^^^^^^^^^^\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 342.00 MiB. GPU 0 has a total capacity of 14.57 GiB of which 281.31 MiB is free. Process 1 has 14.29 GiB memory in use. Of the allocated memory 2.74 GiB is allocated by PyTorch, and 440.57 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)\n"
+    }
+  ]
+}

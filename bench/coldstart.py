@@ -145,7 +145,7 @@ if __name__ == "__main__":
     results = {"gpu": GPU}
     for name in ("NoSnapshot", "CpuSnapshot", "GpuSnapshot"):
         try:
-            results[name] = measure(name, calls, gap=SCALEDOWN + 25)
+            results[name] = measure(name, calls, gap=SCALEDOWN + 40)
         except Exception as e:
             results[name] = {"error": repr(e)}
             print(name, "failed:", e)
