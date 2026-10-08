@@ -45,3 +45,19 @@ Final warm jobs on staging: 4.95, 5.15, 5.35, 5.97 s.
 ## Job status through Workers KV
 
 A throwaway Worker with its own KV namespace (both deleted after) stood in for stemplayer's status path. This machine (Cloudflare location YYZ) wrote "processing" and kept reading the key, as `/api/separate` and the browser's polling do. A Modal function, whose requests reached Cloudflare at LAX like the job's webhook, then wrote "ready". Time until YYZ read "ready", six trials (`kv-propagation.jsonl`): 26.4, 6.8, 38.2, 18.3, 50.1, 30.0 s. KV caches a key at each location, so a person far from Modal's region sees progress and "ready" up to a minute after the stems exist.
+
+## Where Modal runs the GPU, and R2
+
+The bucket (`stem-player-audio`) is in ENAM. A10 containers, each in a fresh container, timing a 5.9 MB GET and four parallel 5.9 MB PUTs. "colo" is the Cloudflare location their requests reached:
+
+| placement | colo | GET (s) | 4 PUTs (s) |
+|---|---|--:|--:|
+| default (anywhere) | IAD | 0.13 | 0.76 |
+| default | CMH | 0.12 | 0.57 |
+| default | FRA | 0.24–0.69 | 1.09–1.15 |
+| default | KIX | 0.29 | 1.87 |
+| `region="us"` (1.15× price) | IAD ×3 | 0.14–0.18 | 0.58–0.65 |
+| `region="us"` | LAX | 0.30 | 1.27 |
+| `region="us-east"` (1.75× price) | IAD | 0.25–0.35 | 0.55–0.64 |
+
+Pinning to `us` would save ~0.3–0.6 s a job on average, and trim the slow tail when Modal places a job in Europe or Asia, for 15% more per GPU-second, idle time included. stemplayer doesn't pin; it's a cost call.
