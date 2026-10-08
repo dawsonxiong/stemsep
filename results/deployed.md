@@ -74,3 +74,7 @@ Branch `dawson/fetch-on-cpu` in stemplayer moved yt-dlp downloads out of the GPU
 yt-dlp took 6–8 s in the 1-core container, against 1.3–2.7 s in the GPU container's four cores, and the extra container and R2 hop cost more again. A memory snapshot didn't shorten the CPU function's cold start (6.6–12.8 s to its first report). Not shipped.
 
 The same runs show the encoding tail depends on the song: 3.8–4.0 s after separation for this track, against ~1.4 s for the MUSDB test song.
+
+## Tried: uploading stems in parts as they encode
+
+Each stem opened an R2 multipart upload up front, and exact 5 MiB parts went out as the encoder produced them. For a 4-minute stem (~5.9 MB) that's one part, ready at ~88% of the encode; the rest followed as the last part, then the completion call. On staging, the upload stage got no faster: 1.26–1.76 s against ~0.75–1.25 s for one PUT. Timed alone from a US container, the critical path after encoding was the 0.6 MB last part (0.29 s) plus `complete` (0.25 s), against 0.46 s for the whole 5.9 MB in one PUT. Per-request latency outweighs the head start until songs pass ~8 minutes. Not shipped. stemsep's `StreamingMP3(on_data=...)` hook stays for it.
