@@ -99,6 +99,18 @@ What didn't help:
 - **VBR.** `-V 2` shrank stems only 4% overall. The drums, the slowest stem to encode, grew to 206–229 kbps, so the critical path didn't move (`results/vbr.json`).
 - **R2 transfers.** Ranged parallel downloads were slower than one GET. Uploads are ~5 MB/s per connection whatever the client (boto3, requests, httpx) or socket buffer size, and R2's 5 MiB minimum part size rules out parallel parts for a 6 MB stem.
 
+## Third pass: what the person waits for
+
+Timing the whole loop, from picking a song to hearing it, turned up costs outside the job itself:
+
+- **Job status was up to a minute stale.** stemplayer kept job status in Workers KV. Its webhook writes land at the Cloudflare location nearest Modal, and the person polls from theirs, which caches the key. Writes landing at LAX took **7–50 s (median ~28 s)** to show in Toronto (`results/kv-propagation.jsonl`). Job records moved to R2, which is consistent everywhere, and the browser now long-polls (stemplayer #7).
+- **Polling.** Before that, the browser polled every 2 s, backing off to 5 s. With a ~5 s job that found "ready" 2–5 s late. It now polls every 1 s, and with #7 a change arrives within a quarter second.
+- **Loud songs encoded twice.** A loud commercial-style track's drums peaked at 1.64 and its bass at 1.02, where no MUSDB stem had come close. demucs's clip guard scales such a stem down on its own, which left the drums 4.4 dB too quiet against the rest, and it also meant the stem had to be encoded again after separation. Two fixes:
+  - a streamed stem now stops encoding as soon as it's known to clip, and is re-encoded the moment separation ends: 5.6 → 4.1 s for separate plus encode on that track;
+  - stemplayer #8 stores stems 6 dB down and has the player undo it, reporting each stem's exact gain. Stems below a ~2 peak never rescale, the balance matches the song, and the MP3's fidelity changes by 0.015 dB (`results/headroom.json`). The encode tail on that track went from 3.8 to 1.25 s.
+- **Where Modal runs the GPU.** Default placement put A10 jobs in Ashburn, Columbus, Frankfurt and Osaka. Against the ENAM bucket, uploads took 0.57–1.87 s. Pinning to `region="us"` (1.15× price) would save ~0.3–0.6 s a job; that's left as a cost call (`results/deployed.md`).
+- **Tried and dropped:** fetching link songs on a separate CPU container. yt-dlp was 3× slower on one core, and the extra hop cost more than the GPU boot it hid (`results/deployed.md`).
+
 ## How it works
 
 `model.py` splits `HTDemucs.forward` into `pre` (STFT and normalization, float32), `Core` (both encoders, the cross-transformer, both decoders) and `post` (mask and iSTFT, float32). Only `Core` changes per backend: eager, autocast, `torch.compile`, or an ONNX Runtime session bound zero-copy to torch's buffers. `engine.py` plans the chunks so the last one ends flush with the song, stacks them, runs them `batch_size` at a time, and cross-fades them back with demucs's triangular window. `audio.py` decodes with ffmpeg, mapping channels as demucs does, and encodes with lameenc.
