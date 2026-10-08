@@ -447,6 +447,16 @@ def test_stream_starts_before_the_song_ends(stub, seg):
     assert ran_before_end[len(ran_before_end) // 2] > 0
 
 
+def test_stream_runs_each_chunk_once(stub, seg):
+    stride = int(0.75 * seg)
+    for length, chunks in ((seg, 1), (seg + 1, 2), (seg + 3 * stride, 4), (seg + 3 * stride + 1, 5)):
+        for batch_size in (1, 2):
+            stub.config = Config(batch_size=batch_size)
+            stub._cores[0].batches.clear()
+            stub.separate_stream(_blocks(torch.randn(2, length) * 0.1, SR))
+            assert sum(stub._cores[0].batches) == chunks, (length, batch_size)
+
+
 def test_stream_rejects_bad_blocks(stub):
     stub.config = Config(batch_size=2)
     with pytest.raises(ValueError):
@@ -472,7 +482,10 @@ def test_decode_blocks_matches_decode(tmp_path):
     subprocess.run([*lavfi, "sine=f=440:d=5", "-ac", "2", "-ar", str(SR), "-b:a", "192k", str(mp3)], check=True)
     subprocess.run([*lavfi, "sine=f=330:d=3", "-ac", "1", "-ar", str(SR), str(mono)], check=True)
     subprocess.run([*lavfi, "sine=f=330:d=3", "-ar", "48000", str(rate)], check=True)
-    for path in (mp3, mono):
+    # Its Xing header still counts every frame: the reads come up short.
+    cut = tmp_path / "cut.mp3"
+    cut.write_bytes(mp3.read_bytes()[: mp3.stat().st_size // 2])
+    for path in (mp3, mono, cut):
         whole = decode(str(path), SR, 2)
         streamed = torch.cat(list(decode_blocks(str(path), SR, 2, seconds=0.7)), -1)
         # libsndfile's MP3 reads differ in the last bit between block sizes.

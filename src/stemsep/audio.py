@@ -52,7 +52,8 @@ def decode(path: str, samplerate: int = 44100, channels: int = 2) -> torch.Tenso
 class NotStreamable(Exception):
     """libsndfile can't read this file as `decode` would, so it has to be
     decoded whole, by `decode`. Raised before the first block if that's
-    known up front, or after the last if the read came up short."""
+    known up front, partway if a read fails, or after the last if the read
+    came up short."""
 
 
 def decode_blocks(
@@ -71,15 +72,18 @@ def decode_blocks(
     with raw, f:
         if f.samplerate != samplerate or f.channels > 2:
             raise NotStreamable(f"{f.samplerate} Hz, {f.channels} channels")
-        got = 0
-        reader = f.blocks(blocksize=int(seconds * samplerate), dtype="float32", always_2d=True)
+        got, size = 0, int(seconds * samplerate)
         while True:
+            # Not f.blocks(), which goes by the frame count in the header and
+            # yields whole blocks even when a read comes up short, as one of
+            # a truncated MP3 does: the rest of the block is left over from
+            # the one before.
             try:
-                block = next(reader)
-            except StopIteration:
-                break
+                block = f.read(size, dtype="float32", always_2d=True)
             except Exception as e:  # a read that fails partway: start again with decode
                 raise NotStreamable(str(e)) from e
+            if not len(block):
+                break
             got += len(block)
             if f.channels == 1 and channels > 1:
                 block = np.repeat(block, channels, axis=1)

@@ -364,11 +364,13 @@ class Separator:
             nonlocal buf, out, weight_sum
             if n <= buf.shape[-1]:
                 return
-            cap = max(n, 2 * buf.shape[-1], seg)
-            grow = cap - buf.shape[-1]
-            buf = torch.cat([buf, buf.new_zeros(C, grow)], -1)
-            out = torch.cat([out, out.new_zeros(S, C, grow)], -1)
-            weight_sum = torch.cat([weight_sum, weight_sum.new_zeros(grow)])
+            # 1.5x at a time, padded in one allocation each: a 10-minute song
+            # peaked at ~3.3 GB of GPU memory doubling through torch.cat.
+            grow = max(n, int(1.5 * buf.shape[-1]), seg) - buf.shape[-1]
+            pad = torch.nn.functional.pad
+            buf = pad(buf, (0, grow))
+            out = pad(out, (0, grow))
+            weight_sum = pad(weight_sum, (0, grow))
 
         def run(offsets: list[int]) -> None:
             batch = torch.stack([buf[:, o : o + seg] for o in offsets])
@@ -418,8 +420,9 @@ class Separator:
         if length == 0:
             raise ValueError("empty audio")
         ensure(max(length, seg))
-        if length <= seg:
+        if length < seg:
             pending = [0]  # one chunk, zero-padded past the end
+            # (Exactly seg long, chunk 0 is a stride chunk, and may have run.)
         elif (pending[-1] if pending else planned - stride) + seg < length:
             pending.append(length - seg)
         for i in range(0, len(pending), cfg.batch_size):
