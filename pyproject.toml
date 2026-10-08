@@ -1,7 +1,7 @@
 [project]
 name = "stemsep"
 version = "0.1.0"
-description = "Add your description here"
+description = "Faster HTDemucs inference on Modal GPUs: batched chunks, mixed precision, compile and ONNX backends"
 readme = "README.md"
 authors = [
     { name = "Dawson", email = "dawsonxiong@gmail.com" }

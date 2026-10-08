@@ -141,16 +141,19 @@ def measure(name: str, calls: int, gap: float) -> dict:
 
 
 if __name__ == "__main__":
+    # One variant per process: a client session left open for the whole run
+    # outlives its token. Results merge into results/coldstart.json.
     calls = int(sys.argv[1]) if len(sys.argv) > 1 else 4
-    results = {"gpu": GPU}
-    for name in ("NoSnapshot", "CpuSnapshot", "GpuSnapshot"):
+    names = sys.argv[2:] or ["NoSnapshot", "CpuSnapshot", "GpuSnapshot"]
+    out = Path(__file__).resolve().parent.parent / "results" / "coldstart.json"
+    results = json.loads(out.read_text()) if out.exists() else {}
+    results["gpu"] = GPU
+    for name in names:
         try:
             results[name] = measure(name, calls, gap=SCALEDOWN + 40)
         except Exception as e:
             results[name] = {"error": repr(e)}
             print(name, "failed:", e)
-    out = Path(__file__).resolve().parent.parent / "results" / "coldstart.json"
-    out.parent.mkdir(exist_ok=True)
-    out.write_text(json.dumps(results, indent=2))
+        out.write_text(json.dumps(results, indent=2))
     print(json.dumps({k: v.get("median_total_s") if isinstance(v, dict) else v
                       for k, v in results.items()}, indent=2))  # fmt: skip
