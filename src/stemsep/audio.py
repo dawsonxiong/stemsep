@@ -164,13 +164,28 @@ def _lame(samplerate: int, channels: int, bitrate: int, quality: int):
     return encoder
 
 
+def stored_gain(peak: float, gain: float = 1.0) -> float:
+    """What a stem with this peak ends up scaled by, stored at `gain`: the
+    gain itself, or less where `_rescale` turns it down further to keep it
+    from clipping. Playing it back at 1 / this restores its level."""
+    return gain / max(1.01 * peak * gain, 1.0)
+
+
 def mp3_bytes(
-    wav: torch.Tensor, samplerate: int, bitrate: int = 192, quality: int = QUALITY
+    wav: torch.Tensor,
+    samplerate: int,
+    bitrate: int = 192,
+    quality: int = QUALITY,
+    gain: float = 1.0,
 ) -> bytes:
     """[channels, length] float audio as CBR MP3, encoded in process with
     lameenc, as `demucs.audio.save_audio` does. lameenc releases the GIL, so
-    stems encode in parallel on threads."""
-    wav = _rescale(wav.float())
+    stems encode in parallel on threads.
+
+    `gain` scales it first: stored 6 dB down (0.5), a stem can peak at
+    almost 2 before it needs `_rescale`, and loud songs' stems often do
+    exceed 1. `stored_gain` says what it was scaled by in the end."""
+    wav = _rescale(wav.float() * gain)
     encoder = _lame(samplerate, wav.shape[0], bitrate, quality)
     return bytes(encoder.encode(_to_int16(wav).tobytes()) + encoder.flush())
 
@@ -201,11 +216,15 @@ class StreamingMP3:
         channels: int,
         bitrate: int = 192,
         quality: int = QUALITY,
+        gain: float = 1.0,
     ):
         import queue
         import threading
 
         self.samplerate, self.bitrate, self.quality = samplerate, bitrate, quality
+        self.gain = gain
+        # Each stem's stored_gain, once finish has run.
+        self.gains: dict[str, float] = {}
         self._queues = {n: queue.Queue() for n in names}
         self._data: dict[str, bytearray] = {}
         self._peak = {n: 0.0 for n in self._queues}
@@ -230,7 +249,7 @@ class StreamingMP3:
             while (segment := self._queues[name].get()) is not None:
                 if self._needs_rescale(name):
                     continue  # this encoding will be thrown away; stop paying for it
-                segment = segment.float()
+                segment = segment.float() * self.gain
                 self._peak[name] = max(self._peak[name], segment.abs().max().item())
                 if not self._needs_rescale(name):
                     data += encoder.encode(_to_int16(segment).tobytes())
@@ -267,7 +286,7 @@ class StreamingMP3:
         # the encoders still finishing the rest. Loud masters often have one:
         # a commercial track's drums peaked at 1.64.
         def encode(name: str) -> bytes:
-            return mp3_bytes(stems[name], self.samplerate, self.bitrate, self.quality)
+            return mp3_bytes(stems[name], self.samplerate, self.bitrate, self.quality, self.gain)
 
         with ThreadPoolExecutor(len(self._queues)) as pool:
             early = {n: pool.submit(encode, n) for n in self._queues if self._needs_rescale(n)}
@@ -284,6 +303,12 @@ class StreamingMP3:
             }
             out = {n: bytes(d) for n, d in self._data.items() if not self._needs_rescale(n)}
             out.update({n: f.result() for n, f in {**early, **late}.items()})
+        # A stem that stopped early stopped tracking its peak too.
+        self.gains = {
+            n: stored_gain(stems[n].abs().max().item() if n in early or n in late else
+                           self._peak[n] / self.gain, self.gain)
+            for n in self._queues
+        }  # fmt: skip
         return out
 
 

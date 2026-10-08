@@ -151,3 +151,29 @@ def test_a_failed_flush_doesnt_hang(monkeypatch):
     t.start()
     t.join(10)
     assert not t.is_alive() and raised
+
+
+def test_stored_gain_is_undone_exactly():
+    """At gain 0.5 a stem peaking at 1.6 isn't rescaled; one at 2.4 is, and
+    stored_gain says by how much, so 1 / it restores the level."""
+    from stemsep.audio import decode, stored_gain
+
+    torch.manual_seed(2)
+    t = torch.arange(3 * SR) / SR
+    tone = torch.sin(2 * torch.pi * 220 * t)
+    stems = {"loud": torch.stack([1.6 * tone, 1.6 * tone]), "louder": torch.stack([2.4 * tone] * 2)}
+    enc = StreamingMP3(stems, SR, 2, gain=0.5)
+    for a in range(0, 3 * SR, SR):
+        enc.feed({k: v[:, a : a + SR] for k, v in stems.items()})
+    out = enc.finish(stems)
+    assert out["loud"] == mp3_bytes(stems["loud"], SR, gain=0.5)
+    assert out["louder"] == mp3_bytes(stems["louder"], SR, gain=0.5)
+    assert enc.gains["loud"] == 0.5
+    assert abs(enc.gains["louder"] - stored_gain(2.4, 0.5)) < 1e-4
+    import tempfile, os
+    for name, peak in (("loud", 1.6), ("louder", 2.4)):
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+            f.write(out[name])
+        back = decode(f.name) / enc.gains[name]
+        os.unlink(f.name)
+        assert abs(back.abs().max().item() - peak) < 0.05 * peak

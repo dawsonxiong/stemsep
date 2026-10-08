@@ -1,0 +1,142 @@
+[
+  {
+    "song": "soundcloud: Flickermood",
+    "stem": "drums",
+    "peak": 1.644,
+    "snr at gain 1.0": null,
+    "snr at gain 0.5": 23.4
+  },
+  {
+    "song": "soundcloud: Flickermood",
+    "stem": "bass",
+    "peak": 1.024,
+    "snr at gain 1.0": null,
+    "snr at gain 0.5": 28.39
+  },
+  {
+    "song": "soundcloud: Flickermood",
+    "stem": "other",
+    "peak": 0.99,
+    "snr at gain 1.0": 27.81,
+    "snr at gain 0.5": 27.8
+  },
+  {
+    "song": "soundcloud: Flickermood",
+    "stem": "vocals",
+    "peak": 0.778,
+    "snr at gain 1.0": 24.47,
+    "snr at gain 0.5": 24.49
+  },
+  {
+    "song": "AM Contra - Heart Peripheral",
+    "stem": "drums",
+    "peak": 0.616,
+    "snr at gain 1.0": 17.44,
+    "snr at gain 0.5": 17.43
+  },
+  {
+    "song": "AM Contra - Heart Peripheral",
+    "stem": "bass",
+    "peak": 0.322,
+    "snr at gain 1.0": 29.71,
+    "snr at gain 0.5": 29.67
+  },
+  {
+    "song": "AM Contra - Heart Peripheral",
+    "stem": "other",
+    "peak": 0.236,
+    "snr at gain 1.0": 23.55,
+    "snr at gain 0.5": 23.52
+  },
+  {
+    "song": "AM Contra - Heart Peripheral",
+    "stem": "vocals",
+    "peak": 0.536,
+    "snr at gain 1.0": 26.41,
+    "snr at gain 0.5": 26.4
+  },
+  {
+    "song": "Al James - Schoolboy Facination",
+    "stem": "drums",
+    "peak": 0.515,
+    "snr at gain 1.0": 16.52,
+    "snr at gain 0.5": 16.52
+  },
+  {
+    "song": "Al James - Schoolboy Facination",
+    "stem": "bass",
+    "peak": 0.293,
+    "snr at gain 1.0": 27.4,
+    "snr at gain 0.5": 27.37
+  },
+  {
+    "song": "Al James - Schoolboy Facination",
+    "stem": "other",
+    "peak": 0.43,
+    "snr at gain 1.0": 24.17,
+    "snr at gain 0.5": 24.15
+  },
+  {
+    "song": "Al James - Schoolboy Facination",
+    "stem": "vocals",
+    "peak": 0.649,
+    "snr at gain 1.0": 22.28,
+    "snr at gain 0.5": 22.27
+  },
+  {
+    "song": "Angels In Amplifiers - I'm Alright",
+    "stem": "drums",
+    "peak": 0.499,
+    "snr at gain 1.0": 21.39,
+    "snr at gain 0.5": 21.39
+  },
+  {
+    "song": "Angels In Amplifiers - I'm Alright",
+    "stem": "bass",
+    "peak": 0.276,
+    "snr at gain 1.0": 27.85,
+    "snr at gain 0.5": 27.81
+  },
+  {
+    "song": "Angels In Amplifiers - I'm Alright",
+    "stem": "other",
+    "peak": 0.626,
+    "snr at gain 1.0": 24.62,
+    "snr at gain 0.5": 24.61
+  },
+  {
+    "song": "Angels In Amplifiers - I'm Alright",
+    "stem": "vocals",
+    "peak": 0.552,
+    "snr at gain 1.0": 25.3,
+    "snr at gain 0.5": 25.3
+  },
+  {
+    "song": "Arise - Run Run Run",
+    "stem": "drums",
+    "peak": 0.869,
+    "snr at gain 1.0": 26.3,
+    "snr at gain 0.5": 26.29
+  },
+  {
+    "song": "Arise - Run Run Run",
+    "stem": "bass",
+    "peak": 0.589,
+    "snr at gain 1.0": 29.48,
+    "snr at gain 0.5": 29.46
+  },
+  {
+    "song": "Arise - Run Run Run",
+    "stem": "other",
+    "peak": 0.76,
+    "snr at gain 1.0": 27.53,
+    "snr at gain 0.5": 27.5
+  },
+  {
+    "song": "Arise - Run Run Run",
+    "stem": "vocals",
+    "peak": 0.421,
+    "snr at gain 1.0": 28.75,
+    "snr at gain 0.5": 28.73
+  }
+]
