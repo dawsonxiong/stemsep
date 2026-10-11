@@ -113,6 +113,34 @@ Timing the whole loop, from picking a song to hearing it, turned up costs outsid
 - **Where Modal runs the GPU.** Default placement put A10 jobs in Ashburn, Columbus, Frankfurt and Osaka. Against the ENAM bucket, uploads took 0.57–1.87 s. Pinning to `region="us"` (1.15× price) would save ~0.3–0.6 s a job; that's left as a cost call (`results/deployed.md`).
 - **Tried and dropped:** fetching link songs on a separate CPU container. yt-dlp was 3× slower on one core, and the extra hop cost more than the GPU boot it hid (`results/deployed.md`).
 
+## Fourth pass: real splits in a browser
+
+The job had become a small part of the wait, so this pass timed whole splits in Chromium against deployed copies of stemplayer: pressing Split to stems playing (`results/browser/`, scripts in `bench/browser/`).
+
+- **Against the old stack.** stemplayer before the first pass (387164c) took 60.6 s warm and 59.9 s cold. Current `main` took 10.4 s and 9.3 s, and production 7.6 s warm. Most of the old minute was KV caching the job's status.
+- **The person's uplink is now the main cost.** Once the upload is in, the rest takes ~6.5 s whatever the latency, CPU or browser (`matrix.jsonl`):
+
+  | Condition (10 MB MP3) | Playable |
+  |---|--:|
+  | fast connection | 6.5 s |
+  | home 50/20 Mbps | 9.4 s |
+  | 4G 20/8 Mbps | 15.6 s |
+  | slow home 25/5 Mbps | 21.9 s |
+  | 45 MB WAV at 50/20 | 24.5 s |
+
+  stemplayer #10 starts the upload when a song is picked, so it's often done by the time Split is pressed: 10.9 → 8.8 s at 20 Mbps up with Split 2 s after the pick.
+- **Pin the GPU after all.** Modal's default placement put the bench's A10 in Frankfurt. That cost ~2 s a split against the bucket and the webhook: 10.4 s against 8.4 s pinned to `region="us"`. stemplayer #10 pins it.
+- **Memory snapshots after a deploy.** Modal keeps one per kind of machine, so the first few cold starts after a deploy each take one (+6–15 s). stemplayer's deploy now warms 6 containers at once, which covers most of them.
+- **YouTube refuses Oracle, and addresses rather than videos.**
+  - Modal's A10s run on Oracle, where YouTube refused every attempt at a gated video. Every refusal fell to Apify: 44–168 s and 5–8.5¢ a song.
+  - On Google Cloud it refuses some IP addresses, not videos, and containers in one region often share an address: us-central let 1 of 3 containers through, us-east and eu-west 3 of 3 (`region-probe.txt`).
+  - Links now download on Google Cloud, and a refusal retries in three other regions at once (stemplayer #11, #14). Refused videos took 9.4–21.1 s instead of 48–125 s (`youtube-retry.jsonl`).
+- **Downloads of link audio** prefer one-file formats over SoundCloud's HLS (0.9–8.4 s → 0.07–1.1 s). Opus and AAC now stream into `separate_stream` through ffmpeg, bit-identical to `decode`.
+- **Playing while separating.** `StreamingMP3`'s `on_data` hook feeds the browser over a Cloudflare Durable Object relay, a WebSocket in from Modal and a streaming GET out. The browser decodes with `mpg123-decoder` and plays the four stems from one AudioWorklet. Sound starts at 1.5 s warm instead of 5.9 s (`live-chromium.jsonl`, stemplayer #16, #17).
+  - A chunked POST into the relay was buffered whole by Cloudflare's edge.
+  - An MSE player was ruled out: on iPhone, MSE audio passed through Web Audio is silent.
+  - A stem that clips in its first stretch stops streaming, so the song falls back to playing from its files. `StreamingMP3(stream_through_rescale=True)` would fix that, and is next.
+
 ## How it works
 
 `model.py` splits `HTDemucs.forward` into `pre` (STFT and normalization, float32), `Core` (both encoders, the cross-transformer, both decoders) and `post` (mask and iSTFT, float32). Only `Core` changes per backend: eager, autocast, `torch.compile`, or an ONNX Runtime session bound zero-copy to torch's buffers. `engine.py` plans the chunks so the last one ends flush with the song, stacks them, runs them `batch_size` at a time, and cross-fades them back with demucs's triangular window, streaming finished stretches to a sink. `separate_stream` does the same for a song still being decoded. `audio.py` decodes with ffmpeg, mapping channels as demucs does, and encodes with lameenc.
@@ -132,6 +160,7 @@ Everything runs on Modal (`uv run modal ...`, from `bench/`), against a Volume h
 | `encode.py` | MP3 encoders and LAME presets |
 | `coldstart.py` | cold start with no snapshot, a CPU memory snapshot, and a GPU memory snapshot |
 | `onnx_gpu.py` | ONNX Runtime CUDA and TensorRT providers |
+| `browser/` | Playwright splits through a deployed stemplayer: conditions (`matrix.sh`, `run.mjs`), live playback (`live.mjs`), YouTube refusals by region (`region_probe.py`). Run from the Mac, not Modal |
 
 ## Using it from stemplayer
 

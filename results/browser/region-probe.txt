@@ -1,0 +1,15 @@
+us-central {'ip': '34.123.17.47', 'fJ9rUzIMcZQ': 'REFUSED', '9bZkp7q19f0': 'REFUSED', 'dQw4w9WgXcQ': 'ok'}
+us-central {'ip': '34.123.150.151', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+us-central {'ip': '34.123.17.47', 'fJ9rUzIMcZQ': 'REFUSED', '9bZkp7q19f0': 'REFUSED', 'dQw4w9WgXcQ': 'ok'}
+us-west {'ip': '35.233.190.23', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+us-west {'ip': '34.94.144.234', 'fJ9rUzIMcZQ': 'REFUSED', '9bZkp7q19f0': 'REFUSED', 'dQw4w9WgXcQ': 'ok'}
+us-west {'ip': '34.102.77.139', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+us-east {'ip': '34.138.117.49', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+us-east {'ip': '34.139.164.154', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+us-east {'ip': '34.138.117.49', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+eu-west {'ip': '34.78.43.113', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+eu-west {'ip': '34.76.142.14', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+eu-west {'ip': '34.53.156.25', 'fJ9rUzIMcZQ': 'ok', '9bZkp7q19f0': 'ok', 'dQw4w9WgXcQ': 'ok'}
+eu-north failed: 
+eu-north failed: 
+eu-north failed: 

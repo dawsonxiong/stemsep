@@ -60,7 +60,7 @@ The bucket (`stem-player-audio`) is in ENAM. A10 containers, each in a fresh con
 | `region="us"` | LAX | 0.30 | 1.27 |
 | `region="us-east"` (1.75× price) | IAD | 0.25–0.35 | 0.55–0.64 |
 
-Pinning to `us` would save ~0.3–0.6 s a job on average, and trim the slow tail when Modal places a job in Europe or Asia, for 15% more per GPU-second, idle time included. stemplayer doesn't pin; it's a cost call.
+Pinning to `us` would save ~0.3–0.6 s a job on average, and trim the slow tail when Modal places a job in Europe or Asia, for 15% more per GPU-second, idle time included. stemplayer didn't pin at first, as a cost call. It does since stemplayer #10, after a bench A10 placed in Frankfurt was ~2 s slower per split in the browser than one pinned to `us` (`results/browser/README.md`).
 
 ## Tried: fetching link songs on a CPU container
 
