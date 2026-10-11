@@ -135,6 +135,7 @@ The job had become a small part of the wait, so this pass timed whole splits in 
   - Modal's A10s run on Oracle, where YouTube refused every attempt at a gated video. Every refusal fell to Apify: 44–168 s and 5–8.5¢ a song.
   - On Google Cloud it refuses some IP addresses, not videos, and containers in one region often share an address: us-central let 1 of 3 containers through, us-east and eu-west 3 of 3 (`region-probe.txt`).
   - Links now download on Google Cloud, and a refusal retries in three other regions at once (stemplayer #11, #14). Refused videos took 9.4–21.1 s instead of 48–125 s (`youtube-retry.jsonl`).
+  - **A wider probe:** 24 containers in 6 regions, 6 videos (`results/youtube-refusals.jsonl`, `bench/browser/refusal_probe.py`). A refused address was refused for every gated video; Tokyo and Singapore refused all 8 containers. The newest yt-dlp nightly changed nothing, and no container had IPv6.
 - **Downloads of link audio** prefer one-file formats over SoundCloud's HLS (0.9–8.4 s → 0.07–1.1 s). Opus and AAC now stream into `separate_stream` through ffmpeg, bit-identical to `decode`.
 - **Playing while separating.** `StreamingMP3`'s `on_data` hook feeds the browser over a Cloudflare Durable Object relay, a WebSocket in from Modal and a streaming GET out. The browser decodes with `mpg123-decoder` and plays the four stems from one AudioWorklet. Sound starts at 1.5 s warm instead of 5.9 s (`live-chromium.jsonl`, stemplayer #16, #17).
   - A chunked POST into the relay was buffered whole by Cloudflare's edge.
